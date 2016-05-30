@@ -46,10 +46,8 @@ Then, add it to your HTML and access it via `window.GMusic`.
 ## Documentation
 `gmusic-ui.js` **extends** the `GMusic` constructor, `window.GMusic`
 
-### Data Structure
-
+### Data Structures
 #### Playlist
-
 ```js
 {
   "id": String,           // Unique ID for this playlist
@@ -59,7 +57,6 @@ Then, add it to your HTML and access it via `window.GMusic`.
 ```
 
 #### Track
-
 ```js
 {
   "id": String,             // Unique ID for this song
