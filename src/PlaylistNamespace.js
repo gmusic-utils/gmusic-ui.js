@@ -20,13 +20,14 @@ export default class PlaylistNamespace extends GMusicNamespace {
   _navigate(playlist) {
     return new Promise((resolve, reject) => {
       window.location.hash = `/pl/${escape(playlist.id)}`;
-      let waitForPage;
-      const waitTimeout = setTimeout(() => clearInterval(waitForPage) && reject('Playlist took too long to load, it might not exist'), 10000);
-      waitForPage = setInterval(() => {
+      let waitForPageInterval;
+      let waitTimeout;
+      const clearTimeouts = () => clearTimeout(waitForPageInterval) && clearTimeout(waitTimeout);
+      waitTimeout = setTimeout(() => clearTimeouts() && reject('Playlist took too long to load, it might not exist'), 10000);
+      waitForPageInterval = setInterval(() => {
         const info = document.querySelector('.material-container-details');
         if (info && info.querySelector('.title').innerText === playlist.name) {
-          clearInterval(waitForPage);
-          clearTimeout(waitTimeout);
+          clearTimeouts();
           resolve();
         }
       }, 10);
