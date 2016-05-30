@@ -91,6 +91,7 @@ Navigates to the given playlist and plays it immediately starting at the given t
 ```js
 {
   id: String,             // Unique ID for this song
+  index: Number,          // The index position (starting at 1) of the track in the object that is storing a collection of tracks E.g. A Playlist
   title: String,
   artist: String,
   album: String,

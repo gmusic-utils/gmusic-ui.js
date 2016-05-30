@@ -174,7 +174,9 @@ var Playlist = function Playlist(playlistObject, id) {
   this.id = id;
   this.name = playlistObject.Oh.replace(/ playlist$/g, '');
   this.tracks = playlistObject.items.map(function (track) {
-    return new _Track2.default(track.Pf.Lc);
+    return new _Track2.default(track.index, track.Pf.Lc);
+  }).sort(function (t1, t2) {
+    return t1.index - t2.index;
   });
 };
 
@@ -190,7 +192,7 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Track = function Track(trackArr) {
+var Track = function Track(index, trackArr) {
   _classCallCheck(this, Track);
 
   this.id = trackArr[0];
@@ -198,6 +200,7 @@ var Track = function Track(trackArr) {
   this.albumArt = trackArr[2];
   this.artist = trackArr[3];
   this.album = trackArr[4];
+  this.index = index;
 
   this.duration = trackArr[13];
   this.playCount = trackArr[22];
