@@ -18,13 +18,13 @@ It's important to note the `gmusic-ui.js` depends on [`gmusic.js`](https://githu
 ### npm
 Install the module with: `npm install gmusic.js gmusic-ui.js`
 
-Once installed, add it to your HTML and access it via `window.GMusicTheme`.
+Once installed, add it to your HTML and access it via `window.GMusic`.
 
 ```html
 <script src="node_modules/gmusic.js/dist/gmusic.min.js"></script>
-<script src="node_modules/gmusic-theme.js/dist/gmusic-theme.min.js"></script>
+<script src="node_modules/gmusic-ui.js/dist/gmusic-ui.min.js"></script>
 <script>
-  window.theme = new window.GMusic(); // Our Google Music Theme API
+  window.gpm = new window.GMusic(); // Our Google Music API
 </script>
 ```
 
@@ -33,13 +33,13 @@ If you are not using a package manager, download the latest script at:
 
 https://raw.githubusercontent.com/gmusic-utils/gmusic-ui.js/master/dist/gmusic-ui.min.js
 
-Then, add it to your HTML and access it via `window.GMusicTheme`.
+Then, add it to your HTML and access it via `window.GMusic`.
 
 ```html
 <script src="gmusic.min.js"></script>
 <script src="gmusic-ui.min.js"></script>
 <script>
-  window.theme = new window.GMusic(window); // Our Google Music API
+  window.gpm = new window.GMusic(window); // Our Google Music API
 </script>
 ```
 
@@ -47,11 +47,11 @@ Then, add it to your HTML and access it via `window.GMusicTheme`.
 `gmusic-ui.js` **extends** the `GMusic` constructor, `window.GMusic`
 
 ### `new GMusic(window)`
-Constructor for a new Google Music Theme API.
+Constructor for a new Google Music API.
 
 - window - `Object` -  The global window object
 
-You can read up on the namespaces and methods that `GMusic` natively offers over in the [GMusic.js README](https://github.com/gmusic-utils/gmusic.js/blob/master/README.md#documentation)
+You can read up on the namespaces and methods that `gmusic` natively offers over in the [gmusic.js README](https://github.com/gmusic-utils/gmusic.js/blob/master/README.md#documentation)
 
 Below are the namespaces and methods that `gmusic-ui` **adds** to GMusic
 
