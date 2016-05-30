@@ -52,18 +52,17 @@ export default class PlaylistNamespace extends GMusicNamespace {
   }
 
   play(playlist) {
-    this._navigate(playlist)
+    return this._navigate(playlist)
       .then(() => {
         document.querySelector('.material-container-details [data-id="play"]').click();
-      })
-      .catch(() => {});
+      });
   }
 
   playWithTrack(playlist = {}, track) {
     assert(playlist.id, 'Expected playlist to have a property "id" but it did not');
     assert(playlist.name, 'Expected playlist to have a property "name" but it did not');
     assert(track.id, 'Expected track to have a property "id" but it did not');
-    this._navigate(playlist)
+    return this._navigate(playlist)
       .then(() => {
         const container = document.querySelector('#mainContainer');
         const songQueryString = `.song-row[data-id=${track.id}"] [data-id="play"]`;
@@ -97,7 +96,6 @@ export default class PlaylistNamespace extends GMusicNamespace {
           }
         };
         setTimeout(scrolDownAndSearch, 0);
-      })
-      .catch(() => {});
+      });
   }
 }

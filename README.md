@@ -10,8 +10,6 @@ Browser-side JS library for controlling [Google Music][] through UI manipulation
 
 `gmusic-ui.js` is not created by, affiliated with, or supported by Google Inc.
 
-[Google Music]: https://play.google.com/music/listen
-
 ## Getting Started
 It's important to note the `gmusic-ui.js` depends on [`gmusic.js`](https://github.com/gmusic-utils/gmusic.js) in order to operate correctly
 
@@ -91,11 +89,17 @@ Navigates to the given playlist and plays it immediately
 
 - playlist `Playlist` - A [`Playlist`](#playlist) object returned from [`getAll()`](#playlistsgetall)
 
+**Returns:**
+- retVal `Promise` - A promise that resolves when the playlist starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
+
 #### `playlists.playWithTrack(playlist, track)`
 Navigates to the given playlist and plays it immediately starting at the given track
 
 - playlist `Playlist` - A [`Playlist`](#playlist) object returned from [`getAll()`](#playlistsgetall)
 - track `Track` - A [`Track`](#track) object from the `tracks` property of the supplied playlist
+
+**Returns:**
+- retVal `Promise` - A promise that resolves when the track starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint via `npm run lint` and test via `npm test`.

@@ -8,8 +8,8 @@ class GMusicExtender {
   }
 
   addNamespace(namespaceName, namespace) {
-    Object.assign(window.controllers, { [namespaceName]: namespace.getPrototype() });
-    Object.assign(window.GMusic._protoObj, { [namespaceName]: namespace.getPrototype() });
+    this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
+    window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
   }
 }
 
