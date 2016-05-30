@@ -145,40 +145,6 @@ var PlaylistController = function (_GenericController) {
         if (songPlayButton) songPlayButton.click();
       });
     }
-
-    // getController() {
-    //   const that = this;
-    //   return {
-    //     getAll: function() { // eslint-disable-line
-    //       return that.getAll();
-    //     },
-    //     hook: function() { // eslint-disable-line
-    //       that.emitter = this;
-    //     },
-    //     _navigate: function(playlist, cb) { // eslint-disable-line
-    //       window.location.hash = `/pl/${escape(playlist.id)}`;
-    //       const waitForPage = setInterval(() => {
-    //         const info = document.querySelector('.material-container-details');
-    //         if (info && info.querySelector('.title').innerText === playlist.name) {
-    //           clearInterval(waitForPage);
-    //           if (cb && typeof cb === 'function') cb();
-    //         }
-    //       }, 10);
-    //     },
-    //     play: function(playlist, cb) { // eslint-disable-line
-    //       this.playlists._navigate(playlist, () => {
-    //         document.querySelector('.material-container-details [data-id="play"]').click();
-    //       });
-    //     },
-    //     playWithTrack: function(playlist, track) { // eslint-disable-line
-    //       this.playlists._navigate(playlist, () => {
-    //         const songPlayButton = document.querySelector(`.song-row[data-id="${track.id}"] [data-id="play"]`);
-    //         if (songPlayButton) songPlayButton.click();
-    //       });
-    //     },
-    //   };
-    // }
-
   }]);
 
   return PlaylistController;
