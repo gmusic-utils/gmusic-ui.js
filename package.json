@@ -1,7 +1,7 @@
 {
   "name": "gmusic-ui.js",
   "description": "Browser-side JS library for controlling Google Music through UI manipulation",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/gmusic-utils/gmusic-ui.js#readme",
   "author": {
     "name": "Samuel Attard",
