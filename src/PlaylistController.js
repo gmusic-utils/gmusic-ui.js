@@ -1,4 +1,4 @@
-// import assert from 'assert';
+import assert from 'assert';
 import GenericController from './GenericController';
 import Playlist from './Structs/Playlist';
 
@@ -10,7 +10,6 @@ export default class PlaylistController extends GenericController {
       this._watchPlaylistObject();
     } else {
       this._playlists = {};
-      console.error('Could not listen to playlist changes in the expected location'); // eslint-disable-line
     }
 
     this.addMethod('getAll', this.getAll.bind(this));
@@ -19,12 +18,15 @@ export default class PlaylistController extends GenericController {
   }
 
   _navigate(playlist) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       window.location.hash = `/pl/${escape(playlist.id)}`;
-      const waitForPage = setInterval(() => {
+      let waitForPage;
+      const waitTimeout = setTimeout(() => clearInterval(waitForPage) && reject('Playlist took too long to load, it might not exist'), 10000);
+      waitForPage = setInterval(() => {
         const info = document.querySelector('.material-container-details');
         if (info && info.querySelector('.title').innerText === playlist.name) {
           clearInterval(waitForPage);
+          clearTimeout(waitTimeout);
           resolve();
         }
       }, 10);
@@ -53,14 +55,17 @@ export default class PlaylistController extends GenericController {
     this._navigate(playlist)
       .then(() => {
         document.querySelector('.material-container-details [data-id="play"]').click();
-      });
+      })
+      .catch(() => {});
   }
 
   playWithTrack(playlist, track) {
     this._navigate(playlist)
       .then(() => {
         const songPlayButton = document.querySelector(`.song-row[data-id="${track.id}"] [data-id="play"]`);
+        assert(songPlayButton, 'Song could not be found');
         if (songPlayButton) songPlayButton.click();
-      });
+      })
+      .catch(() => {});
   }
 }

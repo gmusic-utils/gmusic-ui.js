@@ -21,10 +21,10 @@ Install the module with: `npm install gmusic.js gmusic-ui.js`
 Once installed, add it to your HTML and access it via `window.GMusic`.
 
 ```html
-<script src="node_modules/gmusic.js/dist/gmusic.min.js"></script>
-<script src="node_modules/gmusic-ui.js/dist/gmusic-ui.min.js"></script>
 <script>
-  window.gpm = new window.GMusic(); // Our Google Music API
+  require('gmusic.js')
+  require('gmusic-ui.js')
+  window.gmusic = new window.GMusic(); // Our Google Music API
 </script>
 ```
 
@@ -39,12 +39,39 @@ Then, add it to your HTML and access it via `window.GMusic`.
 <script src="gmusic.min.js"></script>
 <script src="gmusic-ui.min.js"></script>
 <script>
-  window.gpm = new window.GMusic(window); // Our Google Music API
+  window.gmusic = new window.GMusic(window); // Our Google Music API
 </script>
 ```
 
 ## Documentation
 `gmusic-ui.js` **extends** the `GMusic` constructor, `window.GMusic`
+
+### Data Structure
+
+#### Playlist
+
+```js
+{
+  "id": String,           // Unique ID for this playlist
+  "name": String,         // User defined name for this playlist
+  "tracks": Track[],      // An array of Track objects that make up the playlist
+}
+```
+
+#### Track
+
+```js
+{
+  "id": String,             // Unique ID for this song
+  "index": Number,          // The index position (starting at 1) of the track in the object that is storing a collection of tracks E.g. A Playlist
+  "title": String,
+  "artist": String,
+  "album": String,
+  "albumArt": String,       // URL to the albumArt for this song
+  "duration": Number,       // Duration of song in milliseconds
+  "playCount": Number,      // Number of times the user has ever played the song
+}
+```
 
 ### `new GMusic(window)`
 Constructor for a new Google Music API.
@@ -73,33 +100,6 @@ Navigates to the given playlist and plays it immediately starting at the given t
 
 - playlist `Playlist` - A [`Playlist`](#playlist) object returned from [`getAll()`](#playlistsgetall)
 - track `Track` - A [`Track`](#track) object from the `tracks` property of the supplied playlist
-
-## Data Structure
-
-### Playlist
-
-```js
-{
-  "id": String,           // Unique ID for this playlist
-  "name": String,         // User defined name for this playlist
-  "tracks": Track[],      // An array of Track objects that make up the playlist
-}
-```
-
-### Track
-
-```js
-{
-  id: String,             // Unique ID for this song
-  index: Number,          // The index position (starting at 1) of the track in the object that is storing a collection of tracks E.g. A Playlist
-  title: String,
-  artist: String,
-  album: String,
-  albumArt: String,       // URL to the albumArt for this song
-  duration: Number,       // Duration of song in milliseconds
-  playCount: Number,      // Number of times the user has ever played the song
-}
-```
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint via `npm run lint` and test via `npm test`.
