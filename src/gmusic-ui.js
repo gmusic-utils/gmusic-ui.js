@@ -8,8 +8,8 @@ class GMusicUIController {
   }
 
   addController(namespace, controller) {
-    this.controllers[namespace] = controller.getController();
-    window.GMusic._protoObj[namespace] = controller.getController();
+    Object.assign(window.controllers, { [namespace]: controller.getController() });
+    Object.assign(window.GMusic._protoObj, { [namespace]: controller.getController() });
   }
 }
 

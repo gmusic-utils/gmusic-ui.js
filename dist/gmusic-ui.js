@@ -313,6 +313,8 @@ var _PlaylistController2 = _interopRequireDefault(_PlaylistController);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var GMusicUIController = function () {
@@ -326,8 +328,8 @@ var GMusicUIController = function () {
   _createClass(GMusicUIController, [{
     key: 'addController',
     value: function addController(namespace, controller) {
-      this.controllers[namespace] = controller.getController();
-      window.GMusic._protoObj[namespace] = controller.getController();
+      Object.assign(window.controllers, _defineProperty({}, namespace, controller.getController()));
+      Object.assign(window.GMusic._protoObj, _defineProperty({}, namespace, controller.getController()));
     }
   }]);
 
