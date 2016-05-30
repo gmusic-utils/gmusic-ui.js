@@ -1,0 +1,42 @@
+{
+  "name": "gmusic-ui.js",
+  "description": "Browser-side JS library for controlling Google Music through UI manipulation",
+  "version": "1.0.2",
+  "homepage": "https://github.com/gmusic-utils/gmusic-ui.js#readme",
+  "author": {
+    "name": "Samuel Attard",
+    "email": "samuel.r.attard@gmail.com",
+    "url": "samuelattard.com"
+  },
+  "main": "dist/gmusic-ui.js",
+  "scripts": {
+    "build": "grunt build",
+    "prepublish": "npm run build",
+    "test": "grunt test",
+    "lint": "grunt eslint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gmusic-utils/gmusic-ui.js.git"
+  },
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/gmusic-utils/gmusic-ui.js/issues"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^5.0.0",
+    "babel-plugin-transform-class-properties": "^6.6.0",
+    "babel-preset-es2015": "^6.3.13",
+    "eslint": "^1.10.3",
+    "eslint-config-airbnb": "^2.1.1",
+    "grunt": "^0.4.5",
+    "grunt-babel": "^6.0.0",
+    "grunt-browserify": "^4.0.1",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-copy": "^0.8.2",
+    "grunt-contrib-uglify": "^0.11.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "gruntify-eslint": "^1.3.0"
+  }
+}
