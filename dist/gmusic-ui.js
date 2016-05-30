@@ -146,11 +146,46 @@ var PlaylistController = function (_GenericController) {
     }
   }, {
     key: 'playWithTrack',
-    value: function playWithTrack(playlist, track) {
+    value: function playWithTrack() {
+      var playlist = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+      var track = arguments[1];
+
+      (0, _assert2.default)(playlist.id, 'Expected playlist to have a property "id" but it did not');
+      (0, _assert2.default)(playlist.name, 'Expected playlist to have a property "name" but it did not');
+      (0, _assert2.default)(track.id, 'Expected track to have a property "id" but it did not');
       this._navigate(playlist).then(function () {
-        var songPlayButton = document.querySelector('.song-row[data-id="' + track.id + '"] [data-id="play"]');
-        (0, _assert2.default)(songPlayButton, 'Song could not be found');
-        if (songPlayButton) songPlayButton.click();
+        var container = document.querySelector('#mainContainer');
+        var songQueryString = '.song-row[data-id=' + track.id + '"] [data-id="play"]';
+        var songPlayButton = document.querySelector(songQueryString);
+        var initial = container.scrollTop;
+
+        if (songPlayButton) {
+          songPlayButton.click();
+          return;
+        }
+
+        container.scrollTop = 0;
+        // DEV: In order to save memory GPM only renders the songs currently on screen
+        //      and a few above and a few below.  This means the song we want to play
+        //      might not be visible.  We need to QUICKLY "scan" through the page making
+        //      GPM render all songs till we find the one we want
+        var scrolDownAndSearch = function scrolDownAndSearch() {
+          songPlayButton = document.querySelector(songQueryString);
+          if (songPlayButton) {
+            songPlayButton.click();
+            return;
+          }
+          if (container.scrollTop < container.scrollHeight - container.getBoundingClientRect().height) {
+            container.scrollTop += container.getBoundingClientRect().height;
+            // DEV: Changing the scrollTop and rerendering is an asyncronous response
+            //      If we wait for next tick the rerender will be complete
+            setTimeout(scrolDownAndSearch, 0);
+          } else {
+            container.scrollTop = initial;
+            throw new Error('Failed to find song with id ("' + track.id + '") in playlist with id ("' + playlist.id + '")');
+          }
+        };
+        setTimeout(scrolDownAndSearch, 0);
       }).catch(function () {});
     }
   }]);
@@ -190,7 +225,7 @@ var Playlist = function () {
   _createClass(Playlist, [{
     key: 'addTrack',
     value: function addTrack(track) {
-      this.tracks.append(track);
+      this.tracks.push(track);
       this.tracks.sort(function (t1, t2) {
         return t1.index - t2.index;
       });

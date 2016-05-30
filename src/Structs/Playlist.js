@@ -16,7 +16,7 @@ export default class Playlist {
   }
 
   addTrack(track) {
-    this.tracks.append(track);
+    this.tracks.push(track);
     this.tracks.sort((t1, t2) => t1.index - t2.index);
   }
 }
