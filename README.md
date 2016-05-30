@@ -101,6 +101,19 @@ Navigates to the given playlist and plays it immediately starting at the given t
 **Returns:**
 - retVal `Promise` - A promise that resolves when the track starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
 
+## Hooks
+Hooks are bound the same way as the [gmusic.js](https://github.com/gmusic-utils/gmusic.js#hooks) hooks.
+
+###.on('change:playlists')
+Triggers when the content of any playlist or the list of playlists changes in any way.
+
+```js
+gmusic.on('change:playlists', function (playlists) {
+})
+```
+
+- playlists `Playlist[]` - A list of [`Playlist`](#playlist) objects
+
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint via `npm run lint` and test via `npm test`.
 
