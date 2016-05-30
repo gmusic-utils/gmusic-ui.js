@@ -47,6 +47,10 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
 var _GenericController2 = require('./GenericController');
 
 var _GenericController3 = _interopRequireDefault(_GenericController2);
@@ -61,8 +65,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } // import assert from 'assert';
-
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var PlaylistController = function (_GenericController) {
   _inherits(PlaylistController, _GenericController);
@@ -83,7 +86,6 @@ var PlaylistController = function (_GenericController) {
       _this._watchPlaylistObject();
     } else {
       _this._playlists = {};
-      console.error('Could not listen to playlist changes in the expected location'); // eslint-disable-line
     }
 
     _this.addMethod('getAll', _this.getAll.bind(_this));
@@ -95,12 +97,17 @@ var PlaylistController = function (_GenericController) {
   _createClass(PlaylistController, [{
     key: '_navigate',
     value: function _navigate(playlist) {
-      return new Promise(function (resolve) {
+      return new Promise(function (resolve, reject) {
         window.location.hash = '/pl/' + escape(playlist.id);
-        var waitForPage = setInterval(function () {
+        var waitForPage = void 0;
+        var waitTimeout = setTimeout(function () {
+          return clearInterval(waitForPage) && reject('Playlist took too long to load, it might not exist');
+        }, 10000);
+        waitForPage = setInterval(function () {
           var info = document.querySelector('.material-container-details');
           if (info && info.querySelector('.title').innerText === playlist.name) {
             clearInterval(waitForPage);
+            clearTimeout(waitTimeout);
             resolve();
           }
         }, 10);
@@ -127,7 +134,7 @@ var PlaylistController = function (_GenericController) {
         return key !== 'queue' && key !== 'all' && _this3._playlists[key].ha.type === 'pl';
       }).map(function (key) {
         var playlist = _this3._playlists[key];
-        return new _Playlist2.default(playlist, key);
+        return _Playlist2.default.fromPlaylistObject(key, playlist);
       });
     }
   }, {
@@ -135,15 +142,16 @@ var PlaylistController = function (_GenericController) {
     value: function play(playlist) {
       this._navigate(playlist).then(function () {
         document.querySelector('.material-container-details [data-id="play"]').click();
-      });
+      }).catch(function () {});
     }
   }, {
     key: 'playWithTrack',
     value: function playWithTrack(playlist, track) {
       this._navigate(playlist).then(function () {
         var songPlayButton = document.querySelector('.song-row[data-id="' + track.id + '"] [data-id="play"]');
+        (0, _assert2.default)(songPlayButton, 'Song could not be found');
         if (songPlayButton) songPlayButton.click();
-      });
+      }).catch(function () {});
     }
   }]);
 
@@ -153,12 +161,14 @@ var PlaylistController = function (_GenericController) {
 exports.default = PlaylistController;
 
 
-},{"./GenericController":1,"./Structs/Playlist":3}],3:[function(require,module,exports){
+},{"./GenericController":1,"./Structs/Playlist":3,"assert":6}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _Track = require('./Track');
 
@@ -168,16 +178,36 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Playlist = function Playlist(playlistObject, id) {
-  _classCallCheck(this, Playlist);
+var Playlist = function () {
+  function Playlist(id, name) {
+    _classCallCheck(this, Playlist);
 
-  this.id = id;
-  this.name = playlistObject.Oh.replace(/ playlist$/g, '');
-  this.tracks = playlistObject.items.map(function (track) {
-    return new _Track2.default(track.index, track.Pf.Lc);
-  }).sort(function (t1, t2) {
-    return t1.index - t2.index;
+    this.id = id;
+    this.name = name;
+    this.tracks = [];
+  }
+
+  _createClass(Playlist, [{
+    key: 'addTrack',
+    value: function addTrack(track) {
+      this.tracks.append(track);
+      this.tracks.sort(function (t1, t2) {
+        return t1.index - t2.index;
+      });
+    }
+  }]);
+
+  return Playlist;
+}();
+
+Playlist.fromPlaylistObject = function (id, playlistObject) {
+  var playlist = new Playlist(id, playlistObject.Oh.replace(/ playlist$/g, ''));
+  playlistObject.items.map(function (track) {
+    return _Track2.default.fromTrackArray(track.Pf.Lc, track.index);
+  }).forEach(function (track) {
+    playlist.addTrack(track);
   });
+  return playlist;
 };
 
 exports.default = Playlist;
@@ -192,18 +222,42 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Track = function Track(index, trackArr) {
+var Track = function Track(_ref) {
+  var id = _ref.id;
+  var title = _ref.title;
+  var albumArt = _ref.albumArt;
+  var artist = _ref.artist;
+  var album = _ref.album;
+  var _ref$index = _ref.index;
+  var index = _ref$index === undefined ? 1 : _ref$index;
+  var duration = _ref.duration;
+  var _ref$playCount = _ref.playCount;
+  var playCount = _ref$playCount === undefined ? 0 : _ref$playCount;
+
   _classCallCheck(this, Track);
 
-  this.id = trackArr[0];
-  this.title = trackArr[1];
-  this.albumArt = trackArr[2];
-  this.artist = trackArr[3];
-  this.album = trackArr[4];
+  this.id = id;
+  this.title = title;
+  this.albumArt = albumArt;
+  this.artist = artist;
+  this.album = album;
   this.index = index;
 
-  this.duration = trackArr[13];
-  this.playCount = trackArr[22];
+  this.duration = duration;
+  this.playCount = playCount;
+};
+
+Track.fromTrackArray = function (trackArr, index) {
+  return new Track({
+    id: trackArr[0],
+    title: trackArr[1],
+    albumArt: trackArr[2],
+    artist: trackArr[3],
+    album: trackArr[4],
+    index: index,
+    duration: trackArr[13],
+    playCount: trackArr[22]
+  });
 };
 
 exports.default = Track;

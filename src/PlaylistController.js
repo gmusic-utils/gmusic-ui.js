@@ -47,7 +47,7 @@ export default class PlaylistController extends GenericController {
       key !== 'queue' && key !== 'all' && this._playlists[key].ha.type === 'pl'
     ).map((key) => {
       const playlist = this._playlists[key];
-      return new Playlist(playlist, key);
+      return Playlist.fromPlaylistObject(key, playlist);
     });
   }
 
