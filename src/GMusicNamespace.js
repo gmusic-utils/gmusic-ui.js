@@ -1,6 +1,6 @@
-export default class GenericController {
+export default class GMusicNamespace {
   constructor() {
-    this.controls = {};
+    this.prototype = {};
     const that = this;
     this.addMethod('init', function init() {
       that.emitter = this;
@@ -8,10 +8,10 @@ export default class GenericController {
   }
 
   addMethod(methodName, method) {
-    this.controls[methodName] = method;
+    this.prototype[methodName] = method;
   }
 
-  getController() {
-    return this.controls;
+  getPrototype() {
+    return this.prototype;
   }
 }

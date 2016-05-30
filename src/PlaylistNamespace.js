@@ -1,8 +1,8 @@
 import assert from 'assert';
-import GenericController from './GenericController';
+import GMusicNamespace from './GMusicNamespace';
 import Playlist from './Structs/Playlist';
 
-export default class PlaylistController extends GenericController {
+export default class PlaylistNamespace extends GMusicNamespace {
   constructor(...args) {
     super(...args);
     if (window.APPCONTEXT && window.APPCONTEXT.Go && window.APPCONTEXT.Go.h && window.APPCONTEXT.Go.h.length) {
