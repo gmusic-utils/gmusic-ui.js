@@ -80,7 +80,6 @@ You can read up on the namespaces and methods that `gmusic` natively offers over
 Below are the namespaces and methods that `gmusic-ui` **adds** to GMusic
 
 ### Playlists
-
 #### `playlists.getAll()`
 Retrieves a list of all the playlists in the users GPM library
 
