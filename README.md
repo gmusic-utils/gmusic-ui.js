@@ -1,4 +1,4 @@
-# gmusic-theme.js
+# gmusic-ui.js
 [![Build Status](https://travis-ci.org/gmusic-utils/gmusic-ui.js.svg?branch=master)](https://travis-ci.org/gmusic-utils/gmusic-ui.js)
 [![GitHub release](https://img.shields.io/github/tag/gmusic-utils/gmusic-ui.js.svg)]()
 [![Code Climate](https://img.shields.io/codeclimate/github/gmusic-utils/gmusic-ui.js.svg)]()
