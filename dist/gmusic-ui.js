@@ -187,7 +187,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
       (0, _assert2.default)(track.id, 'Expected track to have a property "id" but it did not');
       return this._navigate(playlist).then(function () {
         var container = document.querySelector('#mainContainer');
-        var songQueryString = '.song-row[data-id=' + track.id + '"] [data-id="play"]';
+        var songQueryString = '.song-row[data-id="' + track.id + '"] [data-id="play"]';
         var songPlayButton = document.querySelector(songQueryString);
         var initial = container.scrollTop;
 

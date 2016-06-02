@@ -89,7 +89,7 @@ export default class PlaylistNamespace extends GMusicNamespace {
     return this._navigate(playlist)
       .then(() => {
         const container = document.querySelector('#mainContainer');
-        const songQueryString = `.song-row[data-id=${track.id}"] [data-id="play"]`;
+        const songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
         let songPlayButton = document.querySelector(songQueryString);
         const initial = container.scrollTop;
 
