@@ -211,7 +211,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
             container.scrollTop += container.getBoundingClientRect().height;
             // DEV: Changing the scrollTop and rerendering is an asyncronous response
             //      If we wait for next tick the rerender will be complete
-            setTimeout(scrolDownAndSearch, 0);
+            setTimeout(scrolDownAndSearch, 10);
           } else {
             container.scrollTop = initial;
             throw new Error('Failed to find song with id ("' + track.id + '") in playlist with id ("' + playlist.id + '")');
