@@ -5,8 +5,9 @@ import Playlist from './Structs/Playlist';
 export default class PlaylistNamespace extends GMusicNamespace {
   constructor(...args) {
     super(...args);
-    if (window.APPCONTEXT && window.APPCONTEXT.Go && window.APPCONTEXT.Go.h && window.APPCONTEXT.Go.h.length) {
-      this._playlists = Object.assign({}, window.APPCONTEXT.Go.h[0].Hi);
+    this.path = this._findContextPath();
+    if (this.path) {
+      this._playlists = Object.assign({}, window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]]);
       this._watchPlaylistObject();
     } else {
       this._playlists = {};
@@ -15,6 +16,28 @@ export default class PlaylistNamespace extends GMusicNamespace {
     this.addMethod('getAll', this.getAll.bind(this));
     this.addMethod('play', this.play.bind(this));
     this.addMethod('playWithTrack', this.playWithTrack.bind(this));
+  }
+
+  _findContextPath() {
+    let path;
+    Object.keys(window.APPCONTEXT).forEach((key1) => {
+      if (typeof window.APPCONTEXT[key1] === 'object') {
+        const firstLevel = window.APPCONTEXT[key1] || {};
+        Object.keys(firstLevel).forEach((key2) => {
+          if (Array.isArray(firstLevel[key2]) && firstLevel[key2].length > 0) {
+            const secondLevel = firstLevel[key2][0] || {};
+            Object.keys(secondLevel).forEach((key3) => {
+              if (secondLevel[key3] && typeof secondLevel[key3] === 'object'
+                  && secondLevel[key3].queue && secondLevel[key3].all) {
+                path = [key1, key2, key3];
+              }
+            });
+          }
+        });
+      }
+    });
+
+    return path;
   }
 
   _navigate(playlist) {
@@ -37,8 +60,8 @@ export default class PlaylistNamespace extends GMusicNamespace {
   _watchPlaylistObject() {
     const that = this;
 
-    window.APPCONTEXT.Go.h[0].addEventListener('E', () => {
-      this._playlists = Object.assign({}, this._playlists, window.APPCONTEXT.Go.h[0].Hi);
+    window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
+      this._playlists = Object.assign({}, this._playlists, window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]]);
       that.emitter.emit('change:playlists', this.getAll());
     });
   }

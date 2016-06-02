@@ -9,33 +9,33 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var GenericController = function () {
-  function GenericController() {
-    _classCallCheck(this, GenericController);
+var GMusicNamespace = function () {
+  function GMusicNamespace() {
+    _classCallCheck(this, GMusicNamespace);
 
-    this.controls = {};
+    this.prototype = {};
     var that = this;
     this.addMethod('init', function init() {
       that.emitter = this;
     });
   }
 
-  _createClass(GenericController, [{
+  _createClass(GMusicNamespace, [{
     key: 'addMethod',
     value: function addMethod(methodName, method) {
-      this.controls[methodName] = method;
+      this.prototype[methodName] = method;
     }
   }, {
-    key: 'getController',
-    value: function getController() {
-      return this.controls;
+    key: 'getPrototype',
+    value: function getPrototype() {
+      return this.prototype;
     }
   }]);
 
-  return GenericController;
+  return GMusicNamespace;
 }();
 
-exports.default = GenericController;
+exports.default = GMusicNamespace;
 
 
 },{}],2:[function(require,module,exports){
@@ -45,15 +45,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _GenericController2 = require('./GenericController');
+var _GMusicNamespace2 = require('./GMusicNamespace');
 
-var _GenericController3 = _interopRequireDefault(_GenericController2);
+var _GMusicNamespace3 = _interopRequireDefault(_GMusicNamespace2);
 
 var _Playlist = require('./Structs/Playlist');
 
@@ -67,22 +69,23 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var PlaylistController = function (_GenericController) {
-  _inherits(PlaylistController, _GenericController);
+var PlaylistNamespace = function (_GMusicNamespace) {
+  _inherits(PlaylistNamespace, _GMusicNamespace);
 
-  function PlaylistController() {
+  function PlaylistNamespace() {
     var _Object$getPrototypeO;
 
-    _classCallCheck(this, PlaylistController);
+    _classCallCheck(this, PlaylistNamespace);
 
     for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
       args[_key] = arguments[_key];
     }
 
-    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(PlaylistController)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(PlaylistNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
 
-    if (window.APPCONTEXT && window.APPCONTEXT.Go && window.APPCONTEXT.Go.h && window.APPCONTEXT.Go.h.length) {
-      _this._playlists = Object.assign({}, window.APPCONTEXT.Go.h[0].Hi);
+    _this.path = _this._findContextPath();
+    if (_this.path) {
+      _this._playlists = Object.assign({}, window.APPCONTEXT[_this.path[0]][_this.path[1]][0][_this.path[2]]);
       _this._watchPlaylistObject();
     } else {
       _this._playlists = {};
@@ -94,20 +97,49 @@ var PlaylistController = function (_GenericController) {
     return _this;
   }
 
-  _createClass(PlaylistController, [{
+  _createClass(PlaylistNamespace, [{
+    key: '_findContextPath',
+    value: function _findContextPath() {
+      var path = void 0;
+      Object.keys(window.APPCONTEXT).forEach(function (key1) {
+        if (_typeof(window.APPCONTEXT[key1]) === 'object') {
+          (function () {
+            var firstLevel = window.APPCONTEXT[key1] || {};
+            Object.keys(firstLevel).forEach(function (key2) {
+              if (Array.isArray(firstLevel[key2]) && firstLevel[key2].length > 0) {
+                (function () {
+                  var secondLevel = firstLevel[key2][0] || {};
+                  Object.keys(secondLevel).forEach(function (key3) {
+                    if (secondLevel[key3] && _typeof(secondLevel[key3]) === 'object' && secondLevel[key3].queue && secondLevel[key3].all) {
+                      path = [key1, key2, key3];
+                    }
+                  });
+                })();
+              }
+            });
+          })();
+        }
+      });
+
+      return path;
+    }
+  }, {
     key: '_navigate',
     value: function _navigate(playlist) {
       return new Promise(function (resolve, reject) {
         window.location.hash = '/pl/' + escape(playlist.id);
-        var waitForPage = void 0;
-        var waitTimeout = setTimeout(function () {
-          return clearInterval(waitForPage) && reject('Playlist took too long to load, it might not exist');
+        var waitForPageInterval = void 0;
+        var waitTimeout = void 0;
+        var clearTimeouts = function clearTimeouts() {
+          return clearTimeout(waitForPageInterval) && clearTimeout(waitTimeout);
+        };
+        waitTimeout = setTimeout(function () {
+          return clearTimeouts() && reject('Playlist took too long to load, it might not exist');
         }, 10000);
-        waitForPage = setInterval(function () {
+        waitForPageInterval = setInterval(function () {
           var info = document.querySelector('.material-container-details');
           if (info && info.querySelector('.title').innerText === playlist.name) {
-            clearInterval(waitForPage);
-            clearTimeout(waitTimeout);
+            clearTimeouts();
             resolve();
           }
         }, 10);
@@ -120,8 +152,8 @@ var PlaylistController = function (_GenericController) {
 
       var that = this;
 
-      window.APPCONTEXT.Go.h[0].addEventListener('E', function () {
-        _this2._playlists = Object.assign({}, _this2._playlists, window.APPCONTEXT.Go.h[0].Hi);
+      window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', function () {
+        _this2._playlists = Object.assign({}, _this2._playlists, window.APPCONTEXT[_this2.path[0]][_this2.path[1]][0][_this2.path[2]]);
         that.emitter.emit('change:playlists', _this2.getAll());
       });
     }
@@ -140,9 +172,9 @@ var PlaylistController = function (_GenericController) {
   }, {
     key: 'play',
     value: function play(playlist) {
-      this._navigate(playlist).then(function () {
+      return this._navigate(playlist).then(function () {
         document.querySelector('.material-container-details [data-id="play"]').click();
-      }).catch(function () {});
+      });
     }
   }, {
     key: 'playWithTrack',
@@ -153,7 +185,7 @@ var PlaylistController = function (_GenericController) {
       (0, _assert2.default)(playlist.id, 'Expected playlist to have a property "id" but it did not');
       (0, _assert2.default)(playlist.name, 'Expected playlist to have a property "name" but it did not');
       (0, _assert2.default)(track.id, 'Expected track to have a property "id" but it did not');
-      this._navigate(playlist).then(function () {
+      return this._navigate(playlist).then(function () {
         var container = document.querySelector('#mainContainer');
         var songQueryString = '.song-row[data-id=' + track.id + '"] [data-id="play"]';
         var songPlayButton = document.querySelector(songQueryString);
@@ -186,17 +218,17 @@ var PlaylistController = function (_GenericController) {
           }
         };
         setTimeout(scrolDownAndSearch, 0);
-      }).catch(function () {});
+      });
     }
   }]);
 
-  return PlaylistController;
-}(_GenericController3.default);
+  return PlaylistNamespace;
+}(_GMusicNamespace3.default);
 
-exports.default = PlaylistController;
+exports.default = PlaylistNamespace;
 
 
-},{"./GenericController":1,"./Structs/Playlist":3,"assert":6}],3:[function(require,module,exports){
+},{"./GMusicNamespace":1,"./Structs/Playlist":3,"assert":6}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -223,9 +255,20 @@ var Playlist = function () {
   }
 
   _createClass(Playlist, [{
+    key: 'addTracks',
+    value: function addTracks(tracks) {
+      this.tracks = this.tracks.concat(tracks);
+      this._sort();
+    }
+  }, {
     key: 'addTrack',
     value: function addTrack(track) {
       this.tracks.push(track);
+      this._sort();
+    }
+  }, {
+    key: '_sort',
+    value: function _sort() {
       this.tracks.sort(function (t1, t2) {
         return t1.index - t2.index;
       });
@@ -237,11 +280,9 @@ var Playlist = function () {
 
 Playlist.fromPlaylistObject = function (id, playlistObject) {
   var playlist = new Playlist(id, playlistObject.Oh.replace(/ playlist$/g, ''));
-  playlistObject.items.map(function (track) {
+  playlist.addTracks(playlistObject.items.map(function (track) {
     return _Track2.default.fromTrackArray(track.Pf.Lc, track.index);
-  }).forEach(function (track) {
-    playlist.addTrack(track);
-  });
+  }));
   return playlist;
 };
 
@@ -307,40 +348,38 @@ var _assert = require('assert');
 
 var _assert2 = _interopRequireDefault(_assert);
 
-var _PlaylistController = require('./PlaylistController');
+var _PlaylistNamespace = require('./PlaylistNamespace');
 
-var _PlaylistController2 = _interopRequireDefault(_PlaylistController);
+var _PlaylistNamespace2 = _interopRequireDefault(_PlaylistNamespace);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var GMusicUIController = function () {
-  function GMusicUIController() {
-    _classCallCheck(this, GMusicUIController);
+var GMusicExtender = function () {
+  function GMusicExtender() {
+    _classCallCheck(this, GMusicExtender);
 
     this.controllers = {};
     (0, _assert2.default)(window.GMusic && window.GMusic._protoObj, 'GMusicUI relies on "window.GMusic" existing in the global scope, we couldn\'t find it');
   }
 
-  _createClass(GMusicUIController, [{
-    key: 'addController',
-    value: function addController(namespace, controller) {
-      Object.assign(window.controllers, _defineProperty({}, namespace, controller.getController()));
-      Object.assign(window.GMusic._protoObj, _defineProperty({}, namespace, controller.getController()));
+  _createClass(GMusicExtender, [{
+    key: 'addNamespace',
+    value: function addNamespace(namespaceName, namespace) {
+      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
+      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
     }
   }]);
 
-  return GMusicUIController;
+  return GMusicExtender;
 }();
 
-var controller = new GMusicUIController();
-controller.addController('playlists', new _PlaylistController2.default());
+var controller = new GMusicExtender();
+controller.addNamespace('playlists', new _PlaylistNamespace2.default());
 
 
-},{"./PlaylistController":2,"assert":6}],6:[function(require,module,exports){
+},{"./PlaylistNamespace":2,"assert":6}],6:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
