@@ -235,6 +235,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _Track = require('./Track');
@@ -244,6 +246,8 @@ var _Track2 = _interopRequireDefault(_Track);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var songArrayPath = void 0;
 
 var Playlist = function () {
   function Playlist(id, name) {
@@ -279,7 +283,19 @@ var Playlist = function () {
 }();
 
 Playlist.fromPlaylistObject = function (id, playlistObject) {
-  var playlist = new Playlist(id, playlistObject.Oh.replace(/ playlist$/g, ''));
+  var playlist = new Playlist(id, playlistObject.getTitle().replace(/ playlist$/g, ''));
+  if (playlistObject.items.length > 0 && !songArrayPath) {
+    Object.keys(playlistObject.items[0]).forEach(function (trackKey) {
+      if (_typeof(playlistObject.items[0][trackKey]) === 'object') {
+        Object.keys(playlistObject.items[0][trackKey]).forEach(function (trackArrKey) {
+          if (Array.isArray(playlistObject.items[0][trackKey][trackArrKey])) {
+            songArrayPath = [trackKey, trackArrKey];
+          }
+        });
+      }
+    });
+  }
+  if (!songArrayPath) return playlist;
   playlist.addTracks(playlistObject.items.map(function (track) {
     return _Track2.default.fromTrackArray(track.Pf.Lc, track.index);
   }));
