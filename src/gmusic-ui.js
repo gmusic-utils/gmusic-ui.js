@@ -1,17 +1,17 @@
 import assert from 'assert';
-import PlaylistController from './PlaylistController';
+import PlaylistNamespace from './PlaylistNamespace';
 
-class GMusicUIController {
+class GMusicExtender {
   constructor() {
     this.controllers = {};
     assert(window.GMusic && window.GMusic._protoObj, 'GMusicUI relies on "window.GMusic" existing in the global scope, we couldn\'t find it');
   }
 
-  addController(namespace, controller) {
-    this.controllers[namespace] = controller.getController();
-    window.GMusic._protoObj[namespace] = controller.getController();
+  addNamespace(namespaceName, namespace) {
+    this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
+    window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
   }
 }
 
-const controller = new GMusicUIController();
-controller.addController('playlists', new PlaylistController());
+const controller = new GMusicExtender();
+controller.addNamespace('playlists', new PlaylistNamespace());
