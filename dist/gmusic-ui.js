@@ -367,8 +367,8 @@ var GMusicExtender = function () {
   _createClass(GMusicExtender, [{
     key: 'addNamespace',
     value: function addNamespace(namespaceName, namespace) {
-      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
-      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
+      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
+      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
     }
   }]);
 
