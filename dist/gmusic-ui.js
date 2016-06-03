@@ -45,8 +45,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _assert = require('assert');
@@ -60,6 +58,8 @@ var _GMusicNamespace3 = _interopRequireDefault(_GMusicNamespace2);
 var _Playlist = require('./Structs/Playlist');
 
 var _Playlist2 = _interopRequireDefault(_Playlist);
+
+var _context = require('./utils/context');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -100,28 +100,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
   _createClass(PlaylistNamespace, [{
     key: '_findContextPath',
     value: function _findContextPath() {
-      var path = void 0;
-      Object.keys(window.APPCONTEXT).forEach(function (key1) {
-        if (_typeof(window.APPCONTEXT[key1]) === 'object') {
-          (function () {
-            var firstLevel = window.APPCONTEXT[key1] || {};
-            Object.keys(firstLevel).forEach(function (key2) {
-              if (Array.isArray(firstLevel[key2]) && firstLevel[key2].length > 0) {
-                (function () {
-                  var secondLevel = firstLevel[key2][0] || {};
-                  Object.keys(secondLevel).forEach(function (key3) {
-                    if (secondLevel[key3] && _typeof(secondLevel[key3]) === 'object' && secondLevel[key3].queue && secondLevel[key3].all) {
-                      path = [key1, key2, key3];
-                    }
-                  });
-                })();
-              }
-            });
-          })();
-        }
-      });
-
-      return path;
+      return (0, _context.findContextPath)();
     }
   }, {
     key: '_navigate',
@@ -228,7 +207,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
 exports.default = PlaylistNamespace;
 
 
-},{"./GMusicNamespace":1,"./Structs/Playlist":4,"assert":7}],3:[function(require,module,exports){
+},{"./GMusicNamespace":1,"./Structs/Playlist":4,"./utils/context":7,"assert":8}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -245,9 +224,11 @@ var _GMusicNamespace2 = require('./GMusicNamespace');
 
 var _GMusicNamespace3 = _interopRequireDefault(_GMusicNamespace2);
 
-var _Track = require('./Structs/Track');
+var _Playlist = require('./Structs/Playlist');
 
-var _Track2 = _interopRequireDefault(_Track);
+var _Playlist2 = _interopRequireDefault(_Playlist);
+
+var _context = require('./utils/context');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -278,7 +259,11 @@ var QueueNamespace = function (_GMusicNamespace) {
     var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(QueueNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
 
     _this.tracks = [];
-    _this._watchQueue();
+    _this.path = (0, _context.findContextPath)();
+
+    if (_this.path) {
+      _this._watchQueue();
+    }
 
     _this.addMethod('clear', _this.clear.bind(_this));
     _this.addMethod('getTracks', _this.getTracks.bind(_this));
@@ -291,67 +276,23 @@ var QueueNamespace = function (_GMusicNamespace) {
     value: function _watchQueue() {
       var _this2 = this;
 
-      var lastQueue = [];
-      var queueObserver = new MutationObserver(function () {
+      var that = this;
+
+      var queue = this.getTracks();
+      window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', function () {
         var newQueue = _this2.getTracks();
         var changed = false;
-
-        var checkSongs = function checkSongs(lastItem, newItem) {
-          Object.keys(newItem).forEach(function (key) {
-            if (newItem[key] !== lastItem[key]) {
-              changed = true;
-            }
-          });
-        };
-
         for (var i = 0; i < newQueue.length; i++) {
-          if (!lastQueue[i]) {
-            changed = true;
-            break;
+          if (!queue[i]) {
+            changed = true;break;
           }
-          checkSongs(lastQueue[i], newQueue[i]);
+          if (newQueue[i].id !== queue[i].id) {
+            changed = true;break;
+          }
         }
-
-        if (changed) {
-          lastQueue = newQueue;
-          _this2.emitter.emit('change:queue', newQueue);
-        }
+        queue = newQueue;
+        if (changed) that.emitter.emit('change:queue', newQueue);
       });
-      queueObserver.observe(document.querySelector('#queue-overlay'), {
-        childList: true,
-        subtree: true
-      });
-    }
-  }, {
-    key: '_render',
-    value: function _render(container, force) {
-      // DEV: The queue isn't rendered till a click event is fired on this element
-      //      We must hide the queue during the 400ms animation and then reveal it
-      //      once both the 400ms in and 400ms out animations are complete
-      var table = container.querySelector('.queue-song-table');
-      if (container.style.display === 'none' && (!table || force)) {
-        (function () {
-          // DEV: Hide the queue elements while we rapidly "render" the queue element
-          //      We have to use a style element because inline styles are saved by GPM
-          var style = document.createElement('style');
-          style.innerHTML = '#queue-overlay {left: 10000px !important}';
-          document.body.appendChild(style);
-
-          // Render queue
-          dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
-          setTimeout(function () {
-            // Return queue to intitial state
-            dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
-            // Set interval in this cased is less resource intensive than running a MutationObserver for about 20ms
-            var waitForQueueToHide = setInterval(function () {
-              if (container.style.display === 'none') {
-                clearInterval(waitForQueueToHide);
-                document.body.removeChild(style);
-              }
-            }, 2);
-          }, 20);
-        })();
-      }
     }
   }, {
     key: 'clear',
@@ -374,33 +315,56 @@ var QueueNamespace = function (_GMusicNamespace) {
   }, {
     key: 'getTracks',
     value: function getTracks() {
-      var container = document.querySelector('#queue-overlay');
-      this._render(container);
-
-      return Array.prototype.slice.call(container.querySelectorAll('.queue-song-table tbody > .song-row')).map(function (row, index) {
-        var timeString = row.querySelector('[data-col="duration"]').textContent.trim().split(':');
-        var details = row.querySelector('.song-details-wrapper');
-        var defaultString = {
-          textContent: null
-        };
-        return new _Track2.default({
-          id: row.getAttribute('data-id'),
-          title: (details.querySelector('.song-title') || defaultString).textContent,
-          albumArt: row.querySelector('[data-col="song-details"] img').src.replace('=s60-e100-c', ''),
-          artist: (details.querySelector('.song-artist') || defaultString).textContent,
-          album: (details.querySelector('.song-album') || defaultString).textContent,
-          index: index + 1,
-          duration: 1000 * (parseInt(timeString[0], 10) * 60 + parseInt(timeString[1], 10)),
-          playCount: parseInt(row.querySelector('[data-col="play-count"]').textContent, 10)
-        });
-      });
+      return _Playlist2.default.fromPlaylistObject('_', window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]].queue).tracks;
     }
   }, {
     key: 'playTrack',
     value: function playTrack(track) {
-      var songRow = document.querySelector('[data-id="' + track.id + '"]');
-      (0, _assert2.default)(songRow, 'Failed to find song with ID: ' + track.id);
-      songRow.querySelector('[data-id="play"]').click();
+      if (document.querySelector('#queue-overlay').style.display === 'none') {
+        dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
+      }
+      return new Promise(function (resolve) {
+        var waitForQueueOpen = setInterval(function () {
+          if (document.querySelector('#queue[data-id="queue"]').classList.contains('opened')) {
+            clearInterval(waitForQueueOpen);
+            resolve();
+          }
+        });
+      }).then(function () {
+        (0, _assert2.default)(track.id, 'Expected track to have a property "id" but it did not');
+        var container = document.querySelector('#queueContainer');
+        var songQueryString = '.song-row[data-id="' + track.id + '"] [data-id="play"]';
+        var songPlayButton = document.querySelector(songQueryString);
+        var initial = container.scrollTop;
+
+        if (songPlayButton) {
+          songPlayButton.click();
+          return;
+        }
+
+        container.scrollTop = 0;
+        // DEV: In order to save memory GPM only renders the songs currently on screen
+        //      and a few above and a few below.  This means the song we want to play
+        //      might not be visible.  We need to QUICKLY "scan" through the page making
+        //      GPM render all songs till we find the one we want
+        var scrolDownAndSearch = function scrolDownAndSearch() {
+          songPlayButton = document.querySelector(songQueryString);
+          if (songPlayButton) {
+            songPlayButton.click();
+            return;
+          }
+          if (container.scrollTop < container.scrollHeight - container.getBoundingClientRect().height) {
+            container.scrollTop += container.getBoundingClientRect().height;
+            // DEV: Changing the scrollTop and rerendering is an asyncronous response
+            //      If we wait for next tick the rerender will be complete
+            setTimeout(scrolDownAndSearch, 10);
+          } else {
+            container.scrollTop = initial;
+            throw new Error('Failed to find song with id ("' + track.id + '") in queue');
+          }
+        };
+        setTimeout(scrolDownAndSearch, 0);
+      });
     }
   }]);
 
@@ -410,7 +374,7 @@ var QueueNamespace = function (_GMusicNamespace) {
 exports.default = QueueNamespace;
 
 
-},{"./GMusicNamespace":1,"./Structs/Track":5,"assert":7}],4:[function(require,module,exports){
+},{"./GMusicNamespace":1,"./Structs/Playlist":4,"./utils/context":7,"assert":8}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -466,11 +430,21 @@ var Playlist = function () {
 
 Playlist.fromPlaylistObject = function (id, playlistObject) {
   var playlist = new Playlist(id, playlistObject.getTitle().replace(/ playlist$/g, ''));
-  if (playlistObject.items.length > 0 && !songArrayPath) {
-    Object.keys(playlistObject.items[0]).forEach(function (trackKey) {
-      if (_typeof(playlistObject.items[0][trackKey]) === 'object') {
-        Object.keys(playlistObject.items[0][trackKey]).forEach(function (trackArrKey) {
-          if (Array.isArray(playlistObject.items[0][trackKey][trackArrKey])) {
+  var items = void 0;
+  if (playlistObject.items) {
+    items = playlistObject.items;
+  } else {
+    Object.keys(playlistObject).forEach(function (key) {
+      if (playlistObject[key] && playlistObject[key].items) {
+        items = playlistObject[key].items;
+      }
+    });
+  }
+  if (items && items.length > 0 && !songArrayPath) {
+    Object.keys(items[0]).forEach(function (trackKey) {
+      if (_typeof(items[0][trackKey]) === 'object') {
+        Object.keys(items[0][trackKey]).forEach(function (trackArrKey) {
+          if (Array.isArray(items[0][trackKey][trackArrKey])) {
             songArrayPath = [trackKey, trackArrKey];
           }
         });
@@ -478,8 +452,8 @@ Playlist.fromPlaylistObject = function (id, playlistObject) {
     });
   }
   if (!songArrayPath) return playlist;
-  playlist.addTracks(playlistObject.items.map(function (track) {
-    return _Track2.default.fromTrackArray(track.Pf.Lc, track.index);
+  playlist.addTracks(items.map(function (track, index) {
+    return _Track2.default.fromTrackArray(track[songArrayPath[0]][songArrayPath[1]], track.index || index + 1);
   }));
   return playlist;
 };
@@ -582,7 +556,42 @@ controller.addNamespace('playlists', new _PlaylistNamespace2.default());
 controller.addNamespace('queue', new _QueueNamespace2.default());
 
 
-},{"./PlaylistNamespace":2,"./QueueNamespace":3,"assert":7}],7:[function(require,module,exports){
+},{"./PlaylistNamespace":2,"./QueueNamespace":3,"assert":8}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+var findContextPath = exports.findContextPath = function findContextPath() {
+  var path = void 0;
+  Object.keys(window.APPCONTEXT).forEach(function (key1) {
+    if (_typeof(window.APPCONTEXT[key1]) === 'object') {
+      (function () {
+        var firstLevel = window.APPCONTEXT[key1] || {};
+        Object.keys(firstLevel).forEach(function (key2) {
+          if (Array.isArray(firstLevel[key2]) && firstLevel[key2].length > 0) {
+            (function () {
+              var secondLevel = firstLevel[key2][0] || {};
+              Object.keys(secondLevel).forEach(function (key3) {
+                if (secondLevel[key3] && _typeof(secondLevel[key3]) === 'object' && secondLevel[key3].queue && secondLevel[key3].all) {
+                  path = [key1, key2, key3];
+                }
+              });
+            })();
+          }
+        });
+      })();
+    }
+  });
+
+  return path;
+};
+
+
+},{}],8:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -943,7 +952,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":11}],8:[function(require,module,exports){
+},{"util/":12}],9:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -968,7 +977,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1064,14 +1073,14 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1661,4 +1670,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":10,"_process":9,"inherits":8}]},{},[6]);
+},{"./support/isBuffer":11,"_process":10,"inherits":9}]},{},[6]);

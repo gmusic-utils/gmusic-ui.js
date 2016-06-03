@@ -1,6 +1,8 @@
 import assert from 'assert';
 import GMusicNamespace from './GMusicNamespace';
-import Track from './Structs/Track';
+import Playlist from './Structs/Playlist';
+
+import { findContextPath } from './utils/context';
 
 const dispatchEvent = (el, etype) => {
   const evt = document.createEvent('Events');
@@ -12,7 +14,11 @@ export default class QueueNamespace extends GMusicNamespace {
   constructor(...args) {
     super(...args);
     this.tracks = [];
-    this._watchQueue();
+    this.path = findContextPath();
+
+    if (this.path) {
+      this._watchQueue();
+    }
 
     this.addMethod('clear', this.clear.bind(this));
     this.addMethod('getTracks', this.getTracks.bind(this));
@@ -20,64 +26,23 @@ export default class QueueNamespace extends GMusicNamespace {
   }
 
   _watchQueue() {
-    let lastQueue = [];
-    const queueObserver = new MutationObserver(() => {
+    const that = this;
+
+    let queue = this.getTracks();
+    window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
       const newQueue = this.getTracks();
       let changed = false;
-
-      const checkSongs = (lastItem, newItem) => {
-        Object.keys(newItem).forEach((key) => {
-          if (newItem[key] !== lastItem[key]) {
-            changed = true;
-          }
-        });
-      };
-
       for (let i = 0; i < newQueue.length; i++) {
-        if (!lastQueue[i]) {
-          changed = true;
-          break;
+        if (!queue[i]) {
+          changed = true; break;
         }
-        checkSongs(lastQueue[i], newQueue[i]);
+        if (newQueue[i].id !== queue[i].id) {
+          changed = true; break;
+        }
       }
-
-      if (changed) {
-        lastQueue = newQueue;
-        this.emitter.emit('change:queue', newQueue);
-      }
+      queue = newQueue;
+      if (changed) that.emitter.emit('change:queue', newQueue);
     });
-    queueObserver.observe(document.querySelector('#queue-overlay'), {
-      childList: true,
-      subtree: true,
-    });
-  }
-
-  _render(container, force) {
-    // DEV: The queue isn't rendered till a click event is fired on this element
-    //      We must hide the queue during the 400ms animation and then reveal it
-    //      once both the 400ms in and 400ms out animations are complete
-    const table = container.querySelector('.queue-song-table');
-    if (container.style.display === 'none' && (!table || force)) {
-      // DEV: Hide the queue elements while we rapidly "render" the queue element
-      //      We have to use a style element because inline styles are saved by GPM
-      const style = document.createElement('style');
-      style.innerHTML = '#queue-overlay {left: 10000px !important}';
-      document.body.appendChild(style);
-
-      // Render queue
-      dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
-      setTimeout(() => {
-        // Return queue to intitial state
-        dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
-        // Set interval in this cased is less resource intensive than running a MutationObserver for about 20ms
-        const waitForQueueToHide = setInterval(() => {
-          if (container.style.display === 'none') {
-            clearInterval(waitForQueueToHide);
-            document.body.removeChild(style);
-          }
-        }, 2);
-      }, 20);
-    }
   }
 
   clear(cb) {
@@ -96,33 +61,54 @@ export default class QueueNamespace extends GMusicNamespace {
   }
 
   getTracks() {
-    const container = document.querySelector('#queue-overlay');
-    this._render(container);
-
-    return Array.prototype.slice.call(
-      container.querySelectorAll('.queue-song-table tbody > .song-row')
-    ).map((row, index) => {
-      const timeString = row.querySelector('[data-col="duration"]').textContent.trim().split(':');
-      const details = row.querySelector('.song-details-wrapper');
-      const defaultString = {
-        textContent: null,
-      };
-      return new Track({
-        id: row.getAttribute('data-id'),
-        title: (details.querySelector('.song-title') || defaultString).textContent,
-        albumArt: row.querySelector('[data-col="song-details"] img').src.replace('=s60-e100-c', ''),
-        artist: (details.querySelector('.song-artist') || defaultString).textContent,
-        album: (details.querySelector('.song-album') || defaultString).textContent,
-        index: index + 1,
-        duration: 1000 * (parseInt(timeString[0], 10) * 60 + parseInt(timeString[1], 10)),
-        playCount: parseInt(row.querySelector('[data-col="play-count"]').textContent, 10),
-      });
-    });
+    return Playlist.fromPlaylistObject('_', window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]].queue).tracks;
   }
 
   playTrack(track) {
-    const songRow = document.querySelector('[data-id="' + track.id + '"]');
-    assert(songRow, 'Failed to find song with ID: ' + track.id);
-    songRow.querySelector('[data-id="play"]').click();
+    if (document.querySelector('#queue-overlay').style.display === 'none') {
+      dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
+    }
+    return new Promise((resolve) => {
+      const waitForQueueOpen = setInterval(() => {
+        if (document.querySelector('#queue[data-id="queue"]').classList.contains('opened')) {
+          clearInterval(waitForQueueOpen);
+          resolve();
+        }
+      });
+    }).then(() => {
+      assert(track.id, 'Expected track to have a property "id" but it did not');
+      const container = document.querySelector('#queueContainer');
+      const songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
+      let songPlayButton = document.querySelector(songQueryString);
+      const initial = container.scrollTop;
+
+      if (songPlayButton) {
+        songPlayButton.click();
+        return;
+      }
+
+      container.scrollTop = 0;
+      // DEV: In order to save memory GPM only renders the songs currently on screen
+      //      and a few above and a few below.  This means the song we want to play
+      //      might not be visible.  We need to QUICKLY "scan" through the page making
+      //      GPM render all songs till we find the one we want
+      const scrolDownAndSearch = () => {
+        songPlayButton = document.querySelector(songQueryString);
+        if (songPlayButton) {
+          songPlayButton.click();
+          return;
+        }
+        if (container.scrollTop < container.scrollHeight - container.getBoundingClientRect().height) {
+          container.scrollTop += container.getBoundingClientRect().height;
+          // DEV: Changing the scrollTop and rerendering is an asyncronous response
+          //      If we wait for next tick the rerender will be complete
+          setTimeout(scrolDownAndSearch, 10);
+        } else {
+          container.scrollTop = initial;
+          throw new Error(`Failed to find song with id ("${track.id}") in queue`);
+        }
+      };
+      setTimeout(scrolDownAndSearch, 0);
+    });
   }
 }

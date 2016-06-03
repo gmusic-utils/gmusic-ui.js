@@ -5,11 +5,21 @@ let songArrayPath;
 export default class Playlist {
   static fromPlaylistObject = (id, playlistObject) => {
     const playlist = new Playlist(id, playlistObject.getTitle().replace(/ playlist$/g, ''));
-    if (playlistObject.items.length > 0 && !songArrayPath) {
-      Object.keys(playlistObject.items[0]).forEach((trackKey) => {
-        if (typeof playlistObject.items[0][trackKey] === 'object') {
-          Object.keys(playlistObject.items[0][trackKey]).forEach((trackArrKey) => {
-            if (Array.isArray(playlistObject.items[0][trackKey][trackArrKey])) {
+    let items;
+    if (playlistObject.items) {
+      items = playlistObject.items;
+    } else {
+      Object.keys(playlistObject).forEach((key) => {
+        if (playlistObject[key] && playlistObject[key].items) {
+          items = playlistObject[key].items;
+        }
+      });
+    }
+    if (items && items.length > 0 && !songArrayPath) {
+      Object.keys(items[0]).forEach((trackKey) => {
+        if (typeof items[0][trackKey] === 'object') {
+          Object.keys(items[0][trackKey]).forEach((trackArrKey) => {
+            if (Array.isArray(items[0][trackKey][trackArrKey])) {
               songArrayPath = [trackKey, trackArrKey];
             }
           });
@@ -17,7 +27,7 @@ export default class Playlist {
       });
     }
     if (!songArrayPath) return playlist;
-    playlist.addTracks(playlistObject.items.map((track) => Track.fromTrackArray(track.Pf.Lc, track.index)));
+    playlist.addTracks(items.map((track, index) => Track.fromTrackArray(track[songArrayPath[0]][songArrayPath[1]], track.index || index + 1)));
     return playlist;
   };
 
