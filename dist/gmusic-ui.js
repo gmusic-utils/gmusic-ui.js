@@ -228,7 +228,189 @@ var PlaylistNamespace = function (_GMusicNamespace) {
 exports.default = PlaylistNamespace;
 
 
-},{"./GMusicNamespace":1,"./Structs/Playlist":3,"assert":6}],3:[function(require,module,exports){
+},{"./GMusicNamespace":1,"./Structs/Playlist":4,"assert":7}],3:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _assert = require('assert');
+
+var _assert2 = _interopRequireDefault(_assert);
+
+var _GMusicNamespace2 = require('./GMusicNamespace');
+
+var _GMusicNamespace3 = _interopRequireDefault(_GMusicNamespace2);
+
+var _Track = require('./Structs/Track');
+
+var _Track2 = _interopRequireDefault(_Track);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var dispatchEvent = function dispatchEvent(el, etype) {
+  var evt = document.createEvent('Events');
+  evt.initEvent(etype, true, false);
+  el.dispatchEvent(evt);
+};
+
+var QueueNamespace = function (_GMusicNamespace) {
+  _inherits(QueueNamespace, _GMusicNamespace);
+
+  function QueueNamespace() {
+    var _Object$getPrototypeO;
+
+    _classCallCheck(this, QueueNamespace);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(QueueNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+
+    _this.tracks = [];
+    _this._watchQueue();
+
+    _this.addMethod('clear', _this.clear.bind(_this));
+    _this.addMethod('getTracks', _this.getTracks.bind(_this));
+    _this.addMethod('playTrack', _this.playTrack.bind(_this));
+    return _this;
+  }
+
+  _createClass(QueueNamespace, [{
+    key: '_watchQueue',
+    value: function _watchQueue() {
+      var _this2 = this;
+
+      var lastQueue = [];
+      var queueObserver = new MutationObserver(function () {
+        var newQueue = _this2.getTracks();
+        var changed = false;
+
+        var checkSongs = function checkSongs(lastItem, newItem) {
+          Object.keys(newItem).forEach(function (key) {
+            if (newItem[key] !== lastItem[key]) {
+              changed = true;
+            }
+          });
+        };
+
+        for (var i = 0; i < newQueue.length; i++) {
+          if (!lastQueue[i]) {
+            changed = true;
+            break;
+          }
+          checkSongs(lastQueue[i], newQueue[i]);
+        }
+
+        if (changed) {
+          lastQueue = newQueue;
+          _this2.emitter.emit('change:queue', newQueue);
+        }
+      });
+      queueObserver.observe(document.querySelector('#queue-overlay'), {
+        childList: true,
+        subtree: true
+      });
+    }
+  }, {
+    key: '_render',
+    value: function _render(container, force) {
+      // DEV: The queue isn't rendered till a click event is fired on this element
+      //      We must hide the queue during the 400ms animation and then reveal it
+      //      once both the 400ms in and 400ms out animations are complete
+      var table = container.querySelector('.queue-song-table');
+      if (container.style.display === 'none' && (!table || force)) {
+        (function () {
+          // DEV: Hide the queue elements while we rapidly "render" the queue element
+          //      We have to use a style element because inline styles are saved by GPM
+          var style = document.createElement('style');
+          style.innerHTML = '#queue-overlay {left: 10000px !important}';
+          document.body.appendChild(style);
+
+          // Render queue
+          dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
+          setTimeout(function () {
+            // Return queue to intitial state
+            dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
+            // Set interval in this cased is less resource intensive than running a MutationObserver for about 20ms
+            var waitForQueueToHide = setInterval(function () {
+              if (container.style.display === 'none') {
+                clearInterval(waitForQueueToHide);
+                document.body.removeChild(style);
+              }
+            }, 2);
+          }, 20);
+        })();
+      }
+    }
+  }, {
+    key: 'clear',
+    value: function clear(cb) {
+      var _this3 = this;
+
+      var clearButton = document.querySelector('#queue-overlay [data-id="clear-queue"]');
+      if (clearButton) {
+        clearButton.click();
+        setTimeout(function () {
+          _this3._render(document.querySelector('#queue-overlay'), true);
+          if (cb) {
+            cb();
+          }
+        }, 200);
+      } else if (cb) {
+        cb();
+      }
+    }
+  }, {
+    key: 'getTracks',
+    value: function getTracks() {
+      var container = document.querySelector('#queue-overlay');
+      this._render(container);
+
+      return Array.prototype.slice.call(container.querySelectorAll('.queue-song-table tbody > .song-row')).map(function (row, index) {
+        var timeString = row.querySelector('[data-col="duration"]').textContent.trim().split(':');
+        var details = row.querySelector('.song-details-wrapper');
+        var defaultString = {
+          textContent: null
+        };
+        return new _Track2.default({
+          id: row.getAttribute('data-id'),
+          title: (details.querySelector('.song-title') || defaultString).textContent,
+          albumArt: row.querySelector('[data-col="song-details"] img').src.replace('=s60-e100-c', ''),
+          artist: (details.querySelector('.song-artist') || defaultString).textContent,
+          album: (details.querySelector('.song-album') || defaultString).textContent,
+          index: index + 1,
+          duration: 1000 * (parseInt(timeString[0], 10) * 60 + parseInt(timeString[1], 10)),
+          playCount: parseInt(row.querySelector('[data-col="play-count"]').textContent, 10)
+        });
+      });
+    }
+  }, {
+    key: 'playTrack',
+    value: function playTrack(track) {
+      var songRow = document.querySelector('[data-id="' + track.id + '"]');
+      (0, _assert2.default)(songRow, 'Failed to find song with ID: ' + track.id);
+      songRow.querySelector('[data-id="play"]').click();
+    }
+  }]);
+
+  return QueueNamespace;
+}(_GMusicNamespace3.default);
+
+exports.default = QueueNamespace;
+
+
+},{"./GMusicNamespace":1,"./Structs/Track":5,"assert":7}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -305,7 +487,7 @@ Playlist.fromPlaylistObject = function (id, playlistObject) {
 exports.default = Playlist;
 
 
-},{"./Track":4}],4:[function(require,module,exports){
+},{"./Track":5}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -355,7 +537,7 @@ Track.fromTrackArray = function (trackArr, index) {
 exports.default = Track;
 
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -367,6 +549,10 @@ var _assert2 = _interopRequireDefault(_assert);
 var _PlaylistNamespace = require('./PlaylistNamespace');
 
 var _PlaylistNamespace2 = _interopRequireDefault(_PlaylistNamespace);
+
+var _QueueNamespace = require('./QueueNamespace');
+
+var _QueueNamespace2 = _interopRequireDefault(_QueueNamespace);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -393,9 +579,10 @@ var GMusicExtender = function () {
 
 var controller = new GMusicExtender();
 controller.addNamespace('playlists', new _PlaylistNamespace2.default());
+controller.addNamespace('queue', new _QueueNamespace2.default());
 
 
-},{"./PlaylistNamespace":2,"assert":6}],6:[function(require,module,exports){
+},{"./PlaylistNamespace":2,"./QueueNamespace":3,"assert":7}],7:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -756,7 +943,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":10}],7:[function(require,module,exports){
+},{"util/":11}],8:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -781,7 +968,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -877,14 +1064,14 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1474,4 +1661,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":9,"_process":8,"inherits":7}]},{},[5]);
+},{"./support/isBuffer":10,"_process":9,"inherits":8}]},{},[6]);
