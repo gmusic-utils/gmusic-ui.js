@@ -7,7 +7,7 @@ import { findContextPath } from './utils/context';
 export default class PlaylistNamespace extends GMusicNamespace {
   constructor(...args) {
     super(...args);
-    this.path = this._findContextPath();
+    this.path = findContextPath();
     if (this.path) {
       this._playlists = Object.assign({}, window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]]);
       this._watchPlaylistObject();
@@ -18,10 +18,6 @@ export default class PlaylistNamespace extends GMusicNamespace {
     this.addMethod('getAll', this.getAll.bind(this));
     this.addMethod('play', this.play.bind(this));
     this.addMethod('playWithTrack', this.playWithTrack.bind(this));
-  }
-
-  _findContextPath() {
-    return findContextPath();
   }
 
   _navigate(playlist) {
@@ -43,10 +39,34 @@ export default class PlaylistNamespace extends GMusicNamespace {
 
   _watchPlaylistObject() {
     const that = this;
+    let previous = this.getAll();
 
     window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
       this._playlists = Object.assign({}, this._playlists, window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]]);
-      that.emitter.emit('change:playlists', this.getAll());
+      const current = this.getAll();
+      let changed = false;
+      Object.keys(current).forEach((key) => {
+        if (!previous[key]) {
+          console.warn('Playlists changed: Added ' + key);
+          changed = true;
+          return;
+        }
+        if (previous[key].tracks.length !== current[key].tracks.length) {
+          console.warn('Playlists changed: Track quanitity changed');
+          changed = true;
+          return;
+        }
+        for (let i = 0; i < current[key].tracks.length; i++) {
+          if (!current[key].tracks[i].equals(previous[key].tracks[i])) {
+            console.warn('Playlists changed: Tracks are not equal', current[key].tracks[i], previous[key].tracks[i]);
+            changed = true;
+            return;
+          }
+        }
+      });
+      previous = current;
+      if (!changed) return;
+      that.emitter.emit('change:playlists', current);
     });
   }
 

@@ -83,7 +83,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
 
     var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(PlaylistNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
 
-    _this.path = _this._findContextPath();
+    _this.path = (0, _context.findContextPath)();
     if (_this.path) {
       _this._playlists = Object.assign({}, window.APPCONTEXT[_this.path[0]][_this.path[1]][0][_this.path[2]]);
       _this._watchPlaylistObject();
@@ -98,11 +98,6 @@ var PlaylistNamespace = function (_GMusicNamespace) {
   }
 
   _createClass(PlaylistNamespace, [{
-    key: '_findContextPath',
-    value: function _findContextPath() {
-      return (0, _context.findContextPath)();
-    }
-  }, {
     key: '_navigate',
     value: function _navigate(playlist) {
       return new Promise(function (resolve, reject) {
@@ -130,10 +125,34 @@ var PlaylistNamespace = function (_GMusicNamespace) {
       var _this2 = this;
 
       var that = this;
+      var previous = this.getAll();
 
       window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', function () {
         _this2._playlists = Object.assign({}, _this2._playlists, window.APPCONTEXT[_this2.path[0]][_this2.path[1]][0][_this2.path[2]]);
-        that.emitter.emit('change:playlists', _this2.getAll());
+        var current = _this2.getAll();
+        var changed = false;
+        Object.keys(current).forEach(function (key) {
+          if (!previous[key]) {
+            console.warn('Playlists changed: Added ' + key);
+            changed = true;
+            return;
+          }
+          if (previous[key].tracks.length !== current[key].tracks.length) {
+            console.warn('Playlists changed: Track quanitity changed');
+            changed = true;
+            return;
+          }
+          for (var i = 0; i < current[key].tracks.length; i++) {
+            if (!current[key].tracks[i].equals(previous[key].tracks[i])) {
+              console.warn('Playlists changed: Tracks are not equal', current[key].tracks[i], previous[key].tracks[i]);
+              changed = true;
+              return;
+            }
+          }
+        });
+        previous = current;
+        if (!changed) return;
+        that.emitter.emit('change:playlists', current);
       });
     }
   }, {
@@ -468,32 +487,45 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Track = function Track(_ref) {
-  var id = _ref.id;
-  var title = _ref.title;
-  var albumArt = _ref.albumArt;
-  var artist = _ref.artist;
-  var album = _ref.album;
-  var _ref$index = _ref.index;
-  var index = _ref$index === undefined ? 1 : _ref$index;
-  var duration = _ref.duration;
-  var _ref$playCount = _ref.playCount;
-  var playCount = _ref$playCount === undefined ? 0 : _ref$playCount;
+var Track = function () {
+  function Track(_ref) {
+    var id = _ref.id;
+    var title = _ref.title;
+    var albumArt = _ref.albumArt;
+    var artist = _ref.artist;
+    var album = _ref.album;
+    var _ref$index = _ref.index;
+    var index = _ref$index === undefined ? 1 : _ref$index;
+    var duration = _ref.duration;
+    var _ref$playCount = _ref.playCount;
+    var playCount = _ref$playCount === undefined ? 0 : _ref$playCount;
 
-  _classCallCheck(this, Track);
+    _classCallCheck(this, Track);
 
-  this.id = id;
-  this.title = title;
-  this.albumArt = albumArt;
-  this.artist = artist;
-  this.album = album;
-  this.index = index;
+    this.id = id;
+    this.title = title;
+    this.albumArt = albumArt;
+    this.artist = artist;
+    this.album = album;
+    this.index = index;
 
-  this.duration = duration;
-  this.playCount = playCount;
-};
+    this.duration = duration;
+    this.playCount = playCount;
+  }
+
+  _createClass(Track, [{
+    key: "equals",
+    value: function equals(other) {
+      return this.id === other.id && this.title === other.title && this.albumArt === other.albumArt && this.artist === other.artist && this.album === other.album && this.index === other.index && this.duration === other.duration && this.playCount === other.playCount;
+    }
+  }]);
+
+  return Track;
+}();
 
 Track.fromTrackArray = function (trackArr, index) {
   return new Track({

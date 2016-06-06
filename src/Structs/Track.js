@@ -32,4 +32,15 @@ export default class Track {
     this.duration = duration;
     this.playCount = playCount;
   }
+
+  equals(other) {
+    return this.id === other.id &&
+      this.title === other.title &&
+      this.albumArt === other.albumArt &&
+      this.artist === other.artist &&
+      this.album === other.album &&
+      this.index === other.index &&
+      this.duration === other.duration &&
+      this.playCount === other.playCount;
+  }
 }
