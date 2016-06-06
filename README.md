@@ -101,6 +101,25 @@ Navigates to the given playlist and plays it immediately starting at the given t
 **Returns:**
 - retVal `Promise` - A promise that resolves when the track starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
 
+
+### Queue
+#### `queue.clear()`
+Clears the current queue
+
+#### `queue.getTracks()`
+Retrieves a list of all the tracks in the users current queue
+
+**Returns:**
+- retVal `Track[]` - An array of [`Track`](#track) objects
+
+#### `queue.playTrack(track)`
+Attempts to play a given track in the queue.  If this track is not in the queue an error will be thrown
+
+- track `Track` A [`Track`](#track) object returned from [`getTracks()`](#queuegettracks)
+
+**Returns:**
+- retVal `Promise` - A promise that resolves when the track starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
+
 ## Hooks
 Hooks are bound the same way as the [gmusic.js](https://github.com/gmusic-utils/gmusic.js#hooks) hooks.
 
@@ -113,6 +132,16 @@ gmusic.on('change:playlists', function (playlists) {
 ```
 
 - playlists `Playlist[]` - A list of [`Playlist`](#playlist) objects
+
+###.on('change:queue')
+Triggers when the contents of the queue is changes in any way
+
+```js
+gmusic.on('change:queue', function (queue) {
+})
+```
+
+- queue `Track[]` - A list of [`Track`](#track) objects
 
 ## Contributing
 In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint via `npm run lint` and test via `npm test`.
