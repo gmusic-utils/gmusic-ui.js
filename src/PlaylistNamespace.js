@@ -47,18 +47,15 @@ export default class PlaylistNamespace extends GMusicNamespace {
       let changed = false;
       Object.keys(current).forEach((key) => {
         if (!previous[key]) {
-          console.warn('Playlists changed: Added ' + key);
           changed = true;
           return;
         }
         if (previous[key].tracks.length !== current[key].tracks.length) {
-          console.warn('Playlists changed: Track quanitity changed');
           changed = true;
           return;
         }
         for (let i = 0; i < current[key].tracks.length; i++) {
           if (!current[key].tracks[i].equals(previous[key].tracks[i])) {
-            console.warn('Playlists changed: Tracks are not equal', current[key].tracks[i], previous[key].tracks[i]);
             changed = true;
             return;
           }
