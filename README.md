@@ -165,16 +165,16 @@ Determines if the user is currently searching or not
 **Returns:**
 - retVal `Boolean` - True if the user is searching, False otherwise
 
+#### `search.performSearch(text)`
+Immediately triggers a new search for the given text
+
+- text `String` A word of sequence of words to search for
+
 #### `search.playResult(result)`
 Immediately attempts to play the given result.  If we fail to play the given result
 an error will be thrown.
 
 - result [`Album`](#album) | [`Artist`](#artist) | [`Track`](#track) - An object returned from `getResults()` that you wish to play
-
-#### `search.search(text)`
-Immediately triggers a new search for the given text
-
-- text `String` A word of sequence of words to search for
 
 ## Hooks
 Hooks are bound the same way as the [gmusic.js](https://github.com/gmusic-utils/gmusic.js#hooks) hooks.

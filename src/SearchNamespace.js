@@ -35,8 +35,8 @@ export default class SearchNamespace extends GMusicNamespace {
     this.addMethod('getSearchText', this.getSearchText.bind(this));
     this.addMethod('getResults', this.getResults.bind(this));
     this.addMethod('isSearching', this.isSearching.bind(this));
+    this.addMethod('performSearch', this.performSearch.bind(this));
     this.addMethod('playResult', this.playResult.bind(this));
-    this.addMethod('search', this.search.bind(this));
   }
 
   _text(elem, def) {
@@ -149,7 +149,7 @@ export default class SearchNamespace extends GMusicNamespace {
     (trackPlay || otherPlay).click();
   }
 
-  search(text) {
+  performSearch(text) {
     window.location.hash = `/sr/${escape(text.replace(/ /g, '+'))}`;
   }
 }
