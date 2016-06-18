@@ -1,0 +1,14 @@
+sudo: false
+language: node_js
+node_js:
+  - "4.2"
+
+script:
+  - npm run lint
+
+notifications:
+  email:
+    recipients:
+      - samuel.r.attard@gmail.com
+    on_success: change
+    on_failure: change
