@@ -1,5 +1,6 @@
 import assert from 'assert';
 import PlaylistNamespace from './PlaylistNamespace';
+import QueueNamespace from './QueueNamespace';
 
 class GMusicExtender {
   constructor() {
@@ -8,10 +9,11 @@ class GMusicExtender {
   }
 
   addNamespace(namespaceName, namespace) {
-    this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
-    window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName], namespace.getPrototype());
+    this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
+    window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
   }
 }
 
 const controller = new GMusicExtender();
 controller.addNamespace('playlists', new PlaylistNamespace());
+controller.addNamespace('queue', new QueueNamespace());
