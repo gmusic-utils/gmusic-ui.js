@@ -61,7 +61,7 @@ export default class SearchNamespace extends GMusicNamespace {
         searchChanged -= 1;
         if (searchChanged === 0) {
           // DEV: We need to wait for GPM's own hooks to finish before scanning the UI
-          //      If we push this function to the end of the execution queue the render
+          //      If we push this function to the end of the execution queue, the render
           //      will complete syncronously before calling
           setTimeout(() => {
             that.emitter.emit('change:search-results', that.getResults());
@@ -88,6 +88,8 @@ export default class SearchNamespace extends GMusicNamespace {
         elem.getAttribute('data-id'),
         elem.querySelector(SearchNamespace.selectors.cardTitle).textContent,
         elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
+        // DEV: Remove trailing query params from image with path such as
+        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
         elem.querySelector('img').src.replace('=w220-c-h220-e100', '')
       ));
     });
@@ -98,6 +100,8 @@ export default class SearchNamespace extends GMusicNamespace {
     Array.prototype.forEach.call(artistElems, (elem) => {
       let image = elem.querySelector('img');
       if (image) {
+        // DEV: Remove trailing query params from image with path such as
+        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
         image = image.src.replace('=w190-c-h190-e100', '');
       } else {
         image = null;
