@@ -470,7 +470,7 @@ var SearchNamespace = function (_GMusicNamespace) {
 
       window.addEventListener('hashchange', function () {
         if (!/^#\/sr\//g.test(window.location.hash)) return;
-        _this2.emitter.emit('change:search:text', _this2.getSearchText());
+        _this2.emitter.emit('change:search-text', _this2.getSearchText());
         searchChanged = 2;
       });
 
@@ -478,7 +478,9 @@ var SearchNamespace = function (_GMusicNamespace) {
         if (searchChanged > 0) {
           searchChanged -= 1;
           if (searchChanged === 0) {
-            that.emitter.emit('change:search:results', that.getResults());
+            setTimeout(function () {
+              that.emitter.emit('change:search-results', that.getResults());
+            }, 0);
           }
         }
       });
@@ -486,7 +488,7 @@ var SearchNamespace = function (_GMusicNamespace) {
   }, {
     key: 'getSearchText',
     value: function getSearchText() {
-      return document.querySelector('sj-search-box input').value;
+      return document.querySelector(SearchNamespace.selectors.inputBox).value;
     }
   }, {
     key: 'getResults',
@@ -497,39 +499,39 @@ var SearchNamespace = function (_GMusicNamespace) {
         throw new Error('Can\'t get search results when the user is not searching');
       }
 
-      var albumElems = document.querySelectorAll('.lane-content > [data-type=album]');
+      var albumElems = document.querySelectorAll(SearchNamespace.selectors.albumResults);
       var albums = [];
 
       Array.prototype.forEach.call(albumElems, function (elem) {
-        albums.push(new _Album2.default(elem.getAttribute('data-id'), elem.querySelector('.details .title').textContent, elem.querySelector('.details .sub-title').textContent, elem.querySelector('img').src.replace('=w220-c-h220-e100', '')));
+        albums.push(new _Album2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent, elem.querySelector('img').src.replace('=w220-c-h220-e100', '')));
       });
 
-      var artistElems = document.querySelectorAll('.lane-content > [data-type=artist]');
+      var artistElems = document.querySelectorAll(SearchNamespace.selectors.artistResults);
       var artists = [];
 
       Array.prototype.forEach.call(artistElems, function (elem) {
         var image = elem.querySelector('img');
         if (image) {
-          image = image.src.replace('=w220-c-h220-e100', '');
+          image = image.src.replace('=w190-c-h190-e100', '');
         } else {
           image = null;
         }
-        artists.push(new _Artist2.default(elem.getAttribute('data-id'), elem.querySelector('.details .title').textContent, image));
+        artists.push(new _Artist2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, image));
       });
 
-      var trackElems = document.querySelectorAll('.songlist-container .song-table tr.song-row');
+      var trackElems = document.querySelectorAll(SearchNamespace.selectors.trackResults);
       var tracks = [];
       Array.prototype.forEach.call(trackElems, function (elem, index) {
-        var durationParts = elem.querySelector('[data-col="duration"]').textContent.trim().split(':');
+        var durationParts = elem.querySelector(SearchNamespace.selectors.trackColumns.duration).textContent.trim().split(':');
         tracks.push(new _Track2.default({
           id: elem.getAttribute('data-id'),
-          title: _this3._text(elem.querySelector('[data-col="title"]'), 'Unknown Title'),
-          albumArt: elem.querySelector('[data-col="title"] img').src.replace('=s60-e100-c', ''),
-          artist: _this3._text(elem.querySelector('[data-col="artist"]'), 'Unknown Artist'),
-          album: _this3._text(elem.querySelector('[data-col="album"]'), 'Unknown Album'),
+          title: _this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.title), 'Unknown Title'),
+          albumArt: elem.querySelector(SearchNamespace.selectors.trackColumns.title + ' img').src.replace('=s60-e100-c', ''),
+          artist: _this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.artist), 'Unknown Artist'),
+          album: _this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.album), 'Unknown Album'),
           index: index,
           duration: parseInt(durationParts[0], 10) * 60 + parseInt(durationParts[1], 10),
-          playCount: parseInt(_this3._text(elem.querySelector('[data-col="play-count"]'), '0'), 10)
+          playCount: parseInt(_this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10)
         }));
       });
 
@@ -548,8 +550,8 @@ var SearchNamespace = function (_GMusicNamespace) {
   }, {
     key: 'playResult',
     value: function playResult(resultObject) {
-      var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] [data-id="play"]');
-      var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] .play-button-container');
+      var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.playButton);
+      var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.cardPlayButton);
       if (!trackPlay && !otherPlay) {
         throw new Error('Failed to play result, it must not be in this search');
       }
@@ -565,6 +567,23 @@ var SearchNamespace = function (_GMusicNamespace) {
   return SearchNamespace;
 }(_GMusicNamespace3.default);
 
+SearchNamespace.selectors = {
+  albumResults: '.lane-content > [data-type=album]',
+  artistResults: '.lane-content > [data-type=artist]',
+  cardPlayButton: '.play-button-container',
+  cardTitle: '.details .title',
+  cardSubTitle: '.details .sub-title',
+  inputBox: 'sj-search-box input',
+  playButton: '[data-id="play"]',
+  trackResults: '.songlist-container .song-table tr.song-row',
+  trackColumns: {
+    album: '[data-col="album"]',
+    artist: '[data-col="artist"]',
+    duration: '[data-col="duration"]',
+    playCount: '[data-col="play-count"]',
+    title: '[data-col="title"]'
+  }
+};
 exports.default = SearchNamespace;
 
 
@@ -794,9 +813,10 @@ var GMusicExtender = function () {
 
   _createClass(GMusicExtender, [{
     key: 'addNamespace',
-    value: function addNamespace(namespaceName, namespace) {
-      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
-      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
+    value: function addNamespace(namespaceName, Namespace) {
+      var instance = new Namespace();
+      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, instance.getPrototype());
+      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, instance.getPrototype());
     }
   }]);
 
@@ -804,9 +824,9 @@ var GMusicExtender = function () {
 }();
 
 var controller = new GMusicExtender();
-controller.addNamespace('playlists', new _PlaylistNamespace2.default());
-controller.addNamespace('queue', new _QueueNamespace2.default());
-controller.addNamespace('search', new _SearchNamespace2.default());
+controller.addNamespace('playlists', _PlaylistNamespace2.default);
+controller.addNamespace('queue', _QueueNamespace2.default);
+controller.addNamespace('search', _SearchNamespace2.default);
 
 
 },{"./PlaylistNamespace":2,"./QueueNamespace":3,"./SearchNamespace":4,"assert":11}],10:[function(require,module,exports){
