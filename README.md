@@ -45,6 +45,23 @@ Then, add it to your HTML and access it via `window.GMusic`.
 `gmusic-ui.js` **extends** the `GMusic` constructor, `window.GMusic`
 
 ### Data Structures
+#### Album
+```js
+{
+  "id": String,           // Unique ID for this album
+  "name": String,         // The name of the album
+  "artist": String,       // The name of the artist for the album
+  "albumArt": String,     // URL to the albumArt for this album
+}
+```
+#### Artist
+```js
+{
+  "id": String,           // Unique ID for this artist
+  "name": String,         // The name of the artist
+  "image": String,        // URL to an image of this artist
+}
+```
 #### Playlist
 ```js
 {
@@ -53,7 +70,14 @@ Then, add it to your HTML and access it via `window.GMusic`.
   "tracks": Track[],      // An array of Track objects that make up the playlist
 }
 ```
-
+#### SearchResults
+```js
+{
+  "albums": Album[],      // An array of albums that are part of these search results
+  "artists": Artist[],    // An array of artists that are part of these search results
+  "tracks": Track[],      // An array of tracks taht are part of these search results
+}
+```
 #### Track
 ```js
 {
@@ -119,6 +143,38 @@ Attempts to play a given track in the queue.  If this track is not in the queue 
 
 **Returns:**
 - retVal `Promise` - A promise that resolves when the track starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
+
+### Search
+#### `search.getResults()`
+Retrieves a [`SearchResults`](#searchresults) object representing the current search results.  Will
+throw an error if the user is not currently searching
+
+**Returns:**
+- retVal `SearchResults` - An object of the structure of a [`SearchResults`](#searchresults) object
+
+#### `search.getSearchText()`
+Retrieves the current string that the user is searching for or the most recent string
+the user searched for.  Basically whatever is in the search input field at the moment.
+
+**Returns:**
+- retVal `String` - The value of the search input field
+
+#### `search.isSearching()`
+Determines if the user is currently searching or not
+
+**Returns:**
+- retVal `Boolean` - True if the user is searching, False otherwise
+
+#### `search.playResult(result)`
+Immediately attempts to play the given result.  If we fail to play the given result
+an error will be thrown.
+
+- result [`Album`](#album) | [`Artist`](#artist) | [`Track`](#track) - An object returned from `getResults()` that you wish to play
+
+#### `search.search(text)`
+Immediately triggers a new search for the given text
+
+- text `String` A word of sequence of words to search for
 
 ## Hooks
 Hooks are bound the same way as the [gmusic.js](https://github.com/gmusic-utils/gmusic.js#hooks) hooks.
