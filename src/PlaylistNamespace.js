@@ -5,6 +5,13 @@ import Playlist from './Structs/Playlist';
 import { findContextPath } from './utils/context';
 
 export default class PlaylistNamespace extends GMusicNamespace {
+  static selectors = {
+    mainContainer: '#mainContainer',
+    playButton: '[data-id="play"]',
+    playlistInfoContainer: '.material-container-details',
+    playlistTitle: '.title',
+  };
+
   constructor(...args) {
     super(...args);
     this.path = findContextPath();
@@ -28,8 +35,8 @@ export default class PlaylistNamespace extends GMusicNamespace {
       const clearTimeouts = () => clearTimeout(waitForPageInterval) && clearTimeout(waitTimeout);
       waitTimeout = setTimeout(() => clearTimeouts() && reject('Playlist took too long to load, it might not exist'), 10000);
       waitForPageInterval = setInterval(() => {
-        const info = document.querySelector('.material-container-details');
-        if (info && info.querySelector('.title').innerText === playlist.name) {
+        const info = document.querySelector(PlaylistNamespace.selectors.playlistInfoContainer);
+        if (info && info.querySelector(PlaylistNamespace.selectors.playlistTitle).innerText === playlist.name) {
           clearTimeouts();
           resolve();
         }
@@ -79,7 +86,7 @@ export default class PlaylistNamespace extends GMusicNamespace {
   play(playlist) {
     return this._navigate(playlist)
       .then(() => {
-        document.querySelector('.material-container-details [data-id="play"]').click();
+        document.querySelector(`${PlaylistNamespace.selectors.playlistInfoContainer} ${PlaylistNamespace.selectors.playButton}`).click();
       });
   }
 
@@ -89,8 +96,8 @@ export default class PlaylistNamespace extends GMusicNamespace {
     assert(track.id, 'Expected track to have a property "id" but it did not');
     return this._navigate(playlist)
       .then(() => {
-        const container = document.querySelector('#mainContainer');
-        const songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
+        const container = document.querySelector(PlaylistNamespace.selectors.mainContainer);
+        const songQueryString = `.song-row[data-id="${track.id}"] ${PlaylistNamespace.selectors.playButton}`;
         let songPlayButton = document.querySelector(songQueryString);
         const initial = container.scrollTop;
 

@@ -4,8 +4,6 @@ node_js:
   - "4.2"
 
 script:
-  # DEV: Currently our test suite runs locally only
-  #   This should be resolved in #19
   - npm run lint
 
 notifications:
