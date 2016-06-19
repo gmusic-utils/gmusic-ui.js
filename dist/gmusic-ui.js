@@ -445,10 +445,10 @@ var SearchNamespace = function (_GMusicNamespace) {
     }
 
     _this.addMethod('getSearchText', _this.getSearchText.bind(_this));
-    _this.addMethod('getResults', _this.getResults.bind(_this));
+    _this.addMethod('getCurrentResults', _this.getCurrentResults.bind(_this));
     _this.addMethod('isSearching', _this.isSearching.bind(_this));
+    _this.addMethod('performSearch', _this.performSearch.bind(_this));
     _this.addMethod('playResult', _this.playResult.bind(_this));
-    _this.addMethod('search', _this.search.bind(_this));
     return _this;
   }
 
@@ -478,8 +478,11 @@ var SearchNamespace = function (_GMusicNamespace) {
         if (searchChanged > 0) {
           searchChanged -= 1;
           if (searchChanged === 0) {
+            // DEV: We need to wait for GPM's own hooks to finish before scanning the UI
+            //      If we push this function to the end of the execution queue, the render
+            //      will complete syncronously before calling
             setTimeout(function () {
-              that.emitter.emit('change:search-results', that.getResults());
+              that.emitter.emit('change:search-results', that.getCurrentResults());
             }, 0);
           }
         }
@@ -491,8 +494,8 @@ var SearchNamespace = function (_GMusicNamespace) {
       return document.querySelector(SearchNamespace.selectors.inputBox).value;
     }
   }, {
-    key: 'getResults',
-    value: function getResults() {
+    key: 'getCurrentResults',
+    value: function getCurrentResults() {
       var _this3 = this;
 
       if (!this.isSearching()) {
@@ -503,7 +506,10 @@ var SearchNamespace = function (_GMusicNamespace) {
       var albums = [];
 
       Array.prototype.forEach.call(albumElems, function (elem) {
-        albums.push(new _Album2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent, elem.querySelector('img').src.replace('=w220-c-h220-e100', '')));
+        albums.push(new _Album2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
+        // DEV: Remove trailing path params from image with path such as
+        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
+        elem.querySelector('img').src.replace('=w220-c-h220-e100', '')));
       });
 
       var artistElems = document.querySelectorAll(SearchNamespace.selectors.artistResults);
@@ -512,6 +518,8 @@ var SearchNamespace = function (_GMusicNamespace) {
       Array.prototype.forEach.call(artistElems, function (elem) {
         var image = elem.querySelector('img');
         if (image) {
+          // DEV: Remove trailing path params from image with path such as
+          //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
           image = image.src.replace('=w190-c-h190-e100', '');
         } else {
           image = null;
@@ -558,9 +566,20 @@ var SearchNamespace = function (_GMusicNamespace) {
       (trackPlay || otherPlay).click();
     }
   }, {
-    key: 'search',
-    value: function search(text) {
-      window.location.hash = '/sr/' + escape(text.replace(/ /g, '+'));
+    key: 'performSearch',
+    value: function performSearch(text) {
+      var _this4 = this;
+
+      window.location.hash = '/sr/' + encodeURIComponent(text.replace(/ /g, '+'));
+      return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () {
+          return reject('Search timed out');
+        }, 10000);
+        _this4.emitter.once('change:search-results', function (newResults) {
+          clearTimeout(timeout);
+          resolve(newResults);
+        });
+      });
     }
   }]);
 
@@ -813,10 +832,9 @@ var GMusicExtender = function () {
 
   _createClass(GMusicExtender, [{
     key: 'addNamespace',
-    value: function addNamespace(namespaceName, Namespace) {
-      var instance = new Namespace();
-      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, instance.getPrototype());
-      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, instance.getPrototype());
+    value: function addNamespace(namespaceName, namespace) {
+      this.controllers[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
+      window.GMusic._protoObj[namespaceName] = Object.assign(window.GMusic._protoObj[namespaceName] || {}, namespace.getPrototype());
     }
   }]);
 
@@ -824,9 +842,9 @@ var GMusicExtender = function () {
 }();
 
 var controller = new GMusicExtender();
-controller.addNamespace('playlists', _PlaylistNamespace2.default);
-controller.addNamespace('queue', _QueueNamespace2.default);
-controller.addNamespace('search', _SearchNamespace2.default);
+controller.addNamespace('playlists', new _PlaylistNamespace2.default());
+controller.addNamespace('queue', new _QueueNamespace2.default());
+controller.addNamespace('search', new _SearchNamespace2.default());
 
 
 },{"./PlaylistNamespace":2,"./QueueNamespace":3,"./SearchNamespace":4,"assert":11}],10:[function(require,module,exports){

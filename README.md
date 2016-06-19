@@ -145,7 +145,7 @@ Attempts to play a given track in the queue.  If this track is not in the queue 
 - retVal `Promise` - A promise that resolves when the track starts playing.  This promise can be rejected so you need to handle any errors with `.catch`
 
 ### Search
-#### `search.getResults()`
+#### `search.getCurrentResults()`
 Retrieves a [`SearchResults`](#searchresults) object representing the current search results.  Will
 throw an error if the user is not currently searching
 
@@ -169,6 +169,10 @@ Determines if the user is currently searching or not
 Immediately triggers a new search for the given text
 
 - text `String` A word of sequence of words to search for
+
+**Returns:**
+- retVal `Promise` - A promise that will resolve with the results of the search you just performed.
+The promise will be rejected with a timeout error if the search takes too long.
 
 #### `search.playResult(result)`
 Immediately attempts to play the given result.  If we fail to play the given result

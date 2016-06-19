@@ -33,7 +33,7 @@ export default class SearchNamespace extends GMusicNamespace {
     }
 
     this.addMethod('getSearchText', this.getSearchText.bind(this));
-    this.addMethod('getResults', this.getResults.bind(this));
+    this.addMethod('getCurrentResults', this.getCurrentResults.bind(this));
     this.addMethod('isSearching', this.isSearching.bind(this));
     this.addMethod('performSearch', this.performSearch.bind(this));
     this.addMethod('playResult', this.playResult.bind(this));
@@ -64,7 +64,7 @@ export default class SearchNamespace extends GMusicNamespace {
           //      If we push this function to the end of the execution queue, the render
           //      will complete syncronously before calling
           setTimeout(() => {
-            that.emitter.emit('change:search-results', that.getResults());
+            that.emitter.emit('change:search-results', that.getCurrentResults());
           }, 0);
         }
       }
@@ -75,7 +75,7 @@ export default class SearchNamespace extends GMusicNamespace {
     return document.querySelector(SearchNamespace.selectors.inputBox).value;
   }
 
-  getResults() {
+  getCurrentResults() {
     if (!this.isSearching()) {
       throw new Error('Can\'t get search results when the user is not searching');
     }
@@ -88,7 +88,7 @@ export default class SearchNamespace extends GMusicNamespace {
         elem.getAttribute('data-id'),
         elem.querySelector(SearchNamespace.selectors.cardTitle).textContent,
         elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
-        // DEV: Remove trailing query params from image with path such as
+        // DEV: Remove trailing path params from image with path such as
         //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
         elem.querySelector('img').src.replace('=w220-c-h220-e100', '')
       ));
@@ -100,7 +100,7 @@ export default class SearchNamespace extends GMusicNamespace {
     Array.prototype.forEach.call(artistElems, (elem) => {
       let image = elem.querySelector('img');
       if (image) {
-        // DEV: Remove trailing query params from image with path such as
+        // DEV: Remove trailing path params from image with path such as
         //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
         image = image.src.replace('=w190-c-h190-e100', '');
       } else {
@@ -150,6 +150,13 @@ export default class SearchNamespace extends GMusicNamespace {
   }
 
   performSearch(text) {
-    window.location.hash = `/sr/${escape(text.replace(/ /g, '+'))}`;
+    window.location.hash = `/sr/${encodeURIComponent(text.replace(/ /g, '+'))}`;
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject('Search timed out'), 10000);
+      this.emitter.once('change:search-results', (newResults) => {
+        clearTimeout(timeout);
+        resolve(newResults);
+      });
+    });
   }
 }
