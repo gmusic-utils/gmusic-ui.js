@@ -73,6 +73,7 @@ Then, add it to your HTML and access it via `window.GMusic`.
 #### SearchResults
 ```js
 {
+  "searchText": String,   // The text the user searched for to get these results
   "albums": Album[],      // An array of albums that are part of these search results
   "artists": Artist[],    // An array of artists that are part of these search results
   "tracks": Track[],      // An array of tracks taht are part of these search results
@@ -174,11 +175,16 @@ Immediately triggers a new search for the given text
 - retVal `Promise` - A promise that will resolve with the results of the search you just performed.
 The promise will be rejected with a timeout error if the search takes too long.
 
-#### `search.playResult(result)`
+#### `search.playResult(searchText, result)`
 Immediately attempts to play the given result.  If we fail to play the given result
 an error will be thrown.
 
+- searchText `String` The search text that causes the search result to appear
 - result [`Album`](#album) | [`Artist`](#artist) | [`Track`](#track) - An object returned from `getResults()` that you wish to play
+
+**Returns:**
+- retVal `Promise` - A promise that will resolve when the result starts playing.
+The promise will be rejected with a timeout error if the search takes too long.
 
 ## Hooks
 Hooks are bound the same way as the [gmusic.js](https://github.com/gmusic-utils/gmusic.js#hooks) hooks.
@@ -198,6 +204,14 @@ Triggers when the contents of the queue is changes in any way
 
 ```js
 gmusic.on('change:queue', function (queue) {
+})
+```
+
+###.on('change:search-results')
+Triggers when a new search is performed and the results change
+
+```js
+gmusic.on('change:search-results', function (newResults) {
 })
 ```
 

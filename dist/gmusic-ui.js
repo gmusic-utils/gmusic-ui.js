@@ -463,14 +463,11 @@ var SearchNamespace = function (_GMusicNamespace) {
   }, {
     key: '_watchForSearches',
     value: function _watchForSearches() {
-      var _this2 = this;
-
       var that = this;
       var searchChanged = 0;
 
       window.addEventListener('hashchange', function () {
         if (!/^#\/sr\//g.test(window.location.hash)) return;
-        _this2.emitter.emit('change:search-text', _this2.getSearchText());
         searchChanged = 2;
       });
 
@@ -496,7 +493,7 @@ var SearchNamespace = function (_GMusicNamespace) {
   }, {
     key: 'getCurrentResults',
     value: function getCurrentResults() {
-      var _this3 = this;
+      var _this2 = this;
 
       if (!this.isSearching()) {
         throw new Error('Can\'t get search results when the user is not searching');
@@ -533,17 +530,18 @@ var SearchNamespace = function (_GMusicNamespace) {
         var durationParts = elem.querySelector(SearchNamespace.selectors.trackColumns.duration).textContent.trim().split(':');
         tracks.push(new _Track2.default({
           id: elem.getAttribute('data-id'),
-          title: _this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.title), 'Unknown Title'),
+          title: _this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.title), 'Unknown Title'),
           albumArt: elem.querySelector(SearchNamespace.selectors.trackColumns.title + ' img').src.replace('=s60-e100-c', ''),
-          artist: _this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.artist), 'Unknown Artist'),
-          album: _this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.album), 'Unknown Album'),
+          artist: _this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.artist), 'Unknown Artist'),
+          album: _this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.album), 'Unknown Album'),
           index: index,
           duration: parseInt(durationParts[0], 10) * 60 + parseInt(durationParts[1], 10),
-          playCount: parseInt(_this3._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10)
+          playCount: parseInt(_this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10)
         }));
       });
 
       return {
+        searchText: this.getSearchText(),
         albums: albums,
         artists: artists,
         tracks: tracks
@@ -557,25 +555,31 @@ var SearchNamespace = function (_GMusicNamespace) {
     }
   }, {
     key: 'playResult',
-    value: function playResult(resultObject) {
-      var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.playButton);
-      var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.cardPlayButton);
-      if (!trackPlay && !otherPlay) {
-        throw new Error('Failed to play result, it must not be in this search');
-      }
-      (trackPlay || otherPlay).click();
+    value: function playResult(resultSearchText, resultObject) {
+      return this.performSearch(resultSearchText).then(function () {
+        var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.playButton);
+        var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.cardPlayButton);
+        if (!trackPlay && !otherPlay) {
+          throw new Error('Failed to play result, it must not be in this search');
+        }
+        (trackPlay || otherPlay).click();
+      });
     }
   }, {
     key: 'performSearch',
     value: function performSearch(text) {
-      var _this4 = this;
+      var _this3 = this;
 
-      window.location.hash = '/sr/' + encodeURIComponent(text.replace(/ /g, '+'));
+      var newHash = '/sr/' + encodeURIComponent(text).replace(/%20/g, '+');
+      if (window.location.hash === '#' + newHash) {
+        return Promise.resolve(this.getCurrentResults());
+      }
+      window.location.hash = newHash;
       return new Promise(function (resolve, reject) {
         var timeout = setTimeout(function () {
           return reject('Search timed out');
         }, 10000);
-        _this4.emitter.once('change:search-results', function (newResults) {
+        _this3.emitter.once('change:search-results', function (newResults) {
           clearTimeout(timeout);
           resolve(newResults);
         });

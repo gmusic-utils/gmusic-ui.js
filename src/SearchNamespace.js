@@ -52,7 +52,6 @@ export default class SearchNamespace extends GMusicNamespace {
 
     window.addEventListener('hashchange', () => {
       if (!/^#\/sr\//g.test(window.location.hash)) return;
-      this.emitter.emit('change:search-text', this.getSearchText());
       searchChanged = 2;
     });
 
@@ -130,6 +129,7 @@ export default class SearchNamespace extends GMusicNamespace {
     });
 
     return {
+      searchText: this.getSearchText(),
       albums,
       artists,
       tracks,
@@ -140,17 +140,24 @@ export default class SearchNamespace extends GMusicNamespace {
     return /^#\/sr\//g.test(window.location.hash);
   }
 
-  playResult(resultObject) {
-    const trackPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.playButton}`);
-    const otherPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.cardPlayButton}`);
-    if (!trackPlay && !otherPlay) {
-      throw new Error('Failed to play result, it must not be in this search');
-    }
-    (trackPlay || otherPlay).click();
+  playResult(resultSearchText, resultObject) {
+    return this.performSearch(resultSearchText)
+      .then(() => {
+        const trackPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.playButton}`);
+        const otherPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.cardPlayButton}`);
+        if (!trackPlay && !otherPlay) {
+          throw new Error('Failed to play result, it must not be in this search');
+        }
+        (trackPlay || otherPlay).click();
+      });
   }
 
   performSearch(text) {
-    window.location.hash = `/sr/${encodeURIComponent(text.replace(/ /g, '+'))}`;
+    const newHash = `/sr/${encodeURIComponent(text).replace(/%20/g, '+')}`;
+    if (window.location.hash === `#${newHash}`) {
+      return Promise.resolve(this.getCurrentResults());
+    }
+    window.location.hash = newHash;
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject('Search timed out'), 10000);
       this.emitter.once('change:search-results', (newResults) => {
