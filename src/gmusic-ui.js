@@ -1,6 +1,7 @@
 import assert from 'assert';
 import PlaylistNamespace from './PlaylistNamespace';
 import QueueNamespace from './QueueNamespace';
+import SearchNamespace from './SearchNamespace';
 
 class GMusicExtender {
   constructor() {
@@ -17,3 +18,4 @@ class GMusicExtender {
 const controller = new GMusicExtender();
 controller.addNamespace('playlists', new PlaylistNamespace());
 controller.addNamespace('queue', new QueueNamespace());
+controller.addNamespace('search', new SearchNamespace());

@@ -223,7 +223,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
 exports.default = PlaylistNamespace;
 
 
-},{"./GMusicNamespace":1,"./Structs/Playlist":4,"./utils/context":7,"assert":8}],3:[function(require,module,exports){
+},{"./GMusicNamespace":1,"./Structs/Playlist":7,"./utils/context":10,"assert":11}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -390,7 +390,266 @@ var QueueNamespace = function (_GMusicNamespace) {
 exports.default = QueueNamespace;
 
 
-},{"./GMusicNamespace":1,"./Structs/Playlist":4,"./utils/context":7,"assert":8}],4:[function(require,module,exports){
+},{"./GMusicNamespace":1,"./Structs/Playlist":7,"./utils/context":10,"assert":11}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _GMusicNamespace2 = require('./GMusicNamespace');
+
+var _GMusicNamespace3 = _interopRequireDefault(_GMusicNamespace2);
+
+var _Album = require('./Structs/Album');
+
+var _Album2 = _interopRequireDefault(_Album);
+
+var _Artist = require('./Structs/Artist');
+
+var _Artist2 = _interopRequireDefault(_Artist);
+
+var _Track = require('./Structs/Track');
+
+var _Track2 = _interopRequireDefault(_Track);
+
+var _context = require('./utils/context');
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var SearchNamespace = function (_GMusicNamespace) {
+  _inherits(SearchNamespace, _GMusicNamespace);
+
+  function SearchNamespace() {
+    var _Object$getPrototypeO;
+
+    _classCallCheck(this, SearchNamespace);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    var _this = _possibleConstructorReturn(this, (_Object$getPrototypeO = Object.getPrototypeOf(SearchNamespace)).call.apply(_Object$getPrototypeO, [this].concat(args)));
+
+    _this.path = (0, _context.findContextPath)();
+    if (_this.path) {
+      _this._watchForSearches();
+    }
+
+    _this.addMethod('getSearchText', _this.getSearchText.bind(_this));
+    _this.addMethod('getCurrentResults', _this.getCurrentResults.bind(_this));
+    _this.addMethod('isSearching', _this.isSearching.bind(_this));
+    _this.addMethod('performSearch', _this.performSearch.bind(_this));
+    _this.addMethod('playResult', _this.playResult.bind(_this));
+    return _this;
+  }
+
+  _createClass(SearchNamespace, [{
+    key: '_text',
+    value: function _text(elem, def) {
+      if (elem) {
+        return elem.textContent.trim();
+      }
+      return def;
+    }
+  }, {
+    key: '_watchForSearches',
+    value: function _watchForSearches() {
+      var that = this;
+      var searchChanged = 0;
+
+      window.addEventListener('hashchange', function () {
+        if (!/^#\/sr\//g.test(window.location.hash)) return;
+        searchChanged = 2;
+      });
+
+      window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', function () {
+        if (searchChanged > 0) {
+          searchChanged -= 1;
+          if (searchChanged === 0) {
+            // DEV: We need to wait for GPM's own hooks to finish before scanning the UI
+            //      If we push this function to the end of the execution queue, the render
+            //      will complete syncronously before calling
+            setTimeout(function () {
+              that.emitter.emit('change:search-results', that.getCurrentResults());
+            }, 0);
+          }
+        }
+      });
+    }
+  }, {
+    key: 'getSearchText',
+    value: function getSearchText() {
+      return document.querySelector(SearchNamespace.selectors.inputBox).value;
+    }
+  }, {
+    key: 'getCurrentResults',
+    value: function getCurrentResults() {
+      var _this2 = this;
+
+      if (!this.isSearching()) {
+        throw new Error('Can\'t get search results when the user is not searching');
+      }
+
+      var albumElems = document.querySelectorAll(SearchNamespace.selectors.albumResults);
+      var albums = [];
+
+      Array.prototype.forEach.call(albumElems, function (elem) {
+        albums.push(new _Album2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
+        // DEV: Remove trailing path params from image with path such as
+        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
+        elem.querySelector('img').src.replace('=w220-c-h220-e100', '')));
+      });
+
+      var artistElems = document.querySelectorAll(SearchNamespace.selectors.artistResults);
+      var artists = [];
+
+      Array.prototype.forEach.call(artistElems, function (elem) {
+        var image = elem.querySelector('img');
+        if (image) {
+          // DEV: Remove trailing path params from image with path such as
+          //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
+          image = image.src.replace('=w190-c-h190-e100', '');
+        } else {
+          image = null;
+        }
+        artists.push(new _Artist2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, image));
+      });
+
+      var trackElems = document.querySelectorAll(SearchNamespace.selectors.trackResults);
+      var tracks = [];
+      Array.prototype.forEach.call(trackElems, function (elem, index) {
+        var durationParts = elem.querySelector(SearchNamespace.selectors.trackColumns.duration).textContent.trim().split(':');
+        tracks.push(new _Track2.default({
+          id: elem.getAttribute('data-id'),
+          title: _this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.title), 'Unknown Title'),
+          albumArt: elem.querySelector(SearchNamespace.selectors.trackColumns.title + ' img').src.replace('=s60-e100-c', ''),
+          artist: _this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.artist), 'Unknown Artist'),
+          album: _this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.album), 'Unknown Album'),
+          index: index,
+          duration: parseInt(durationParts[0], 10) * 60 + parseInt(durationParts[1], 10),
+          playCount: parseInt(_this2._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10)
+        }));
+      });
+
+      return {
+        searchText: this.getSearchText(),
+        albums: albums,
+        artists: artists,
+        tracks: tracks
+      };
+    }
+  }, {
+    key: 'isSearching',
+    value: function isSearching() {
+      return (/^#\/sr\//g.test(window.location.hash)
+      );
+    }
+  }, {
+    key: 'playResult',
+    value: function playResult(resultObject) {
+      var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.playButton);
+      var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.cardPlayButton);
+      if (!trackPlay && !otherPlay) {
+        throw new Error('Failed to play result, it must not be in this search');
+      }
+      (trackPlay || otherPlay).click();
+    }
+  }, {
+    key: 'performSearch',
+    value: function performSearch(text) {
+      var _this3 = this;
+
+      var newHash = '/sr/' + encodeURIComponent(text).replace(/%20/g, '+');
+      if (window.location.hash === '#' + newHash) {
+        return Promise.resolve(this.getCurrentResults());
+      }
+      window.location.hash = newHash;
+      return new Promise(function (resolve, reject) {
+        var timeout = setTimeout(function () {
+          return reject('Search timed out');
+        }, 10000);
+        _this3.emitter.once('change:search-results', function (newResults) {
+          clearTimeout(timeout);
+          resolve(newResults);
+        });
+      });
+    }
+  }]);
+
+  return SearchNamespace;
+}(_GMusicNamespace3.default);
+
+SearchNamespace.selectors = {
+  albumResults: '.lane-content > [data-type=album]',
+  artistResults: '.lane-content > [data-type=artist]',
+  cardPlayButton: '.play-button-container',
+  cardTitle: '.details .title',
+  cardSubTitle: '.details .sub-title',
+  inputBox: 'sj-search-box input',
+  playButton: '[data-id="play"]',
+  trackResults: '.songlist-container .song-table tr.song-row',
+  trackColumns: {
+    album: '[data-col="album"]',
+    artist: '[data-col="artist"]',
+    duration: '[data-col="duration"]',
+    playCount: '[data-col="play-count"]',
+    title: '[data-col="title"]'
+  }
+};
+exports.default = SearchNamespace;
+
+
+},{"./GMusicNamespace":1,"./Structs/Album":5,"./Structs/Artist":6,"./Structs/Track":8,"./utils/context":10}],5:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Album = function Album(id, name, artistName, albumArt) {
+  _classCallCheck(this, Album);
+
+  this.id = id;
+  this.name = name;
+  this.artist = artistName;
+  this.albumArt = albumArt;
+};
+
+exports.default = Album;
+
+
+},{}],6:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Artist = function Artist(id, name, image) {
+  _classCallCheck(this, Artist);
+
+  this.id = id;
+  this.name = name;
+  this.image = image;
+};
+
+exports.default = Artist;
+
+
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -477,7 +736,7 @@ Playlist.fromPlaylistObject = function (id, playlistObject) {
 exports.default = Playlist;
 
 
-},{"./Track":5}],5:[function(require,module,exports){
+},{"./Track":8}],8:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -540,7 +799,7 @@ Track.fromTrackArray = function (trackArr, index) {
 exports.default = Track;
 
 
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -556,6 +815,10 @@ var _PlaylistNamespace2 = _interopRequireDefault(_PlaylistNamespace);
 var _QueueNamespace = require('./QueueNamespace');
 
 var _QueueNamespace2 = _interopRequireDefault(_QueueNamespace);
+
+var _SearchNamespace = require('./SearchNamespace');
+
+var _SearchNamespace2 = _interopRequireDefault(_SearchNamespace);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -583,9 +846,10 @@ var GMusicExtender = function () {
 var controller = new GMusicExtender();
 controller.addNamespace('playlists', new _PlaylistNamespace2.default());
 controller.addNamespace('queue', new _QueueNamespace2.default());
+controller.addNamespace('search', new _SearchNamespace2.default());
 
 
-},{"./PlaylistNamespace":2,"./QueueNamespace":3,"assert":8}],7:[function(require,module,exports){
+},{"./PlaylistNamespace":2,"./QueueNamespace":3,"./SearchNamespace":4,"assert":11}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -620,7 +884,7 @@ var findContextPath = exports.findContextPath = function findContextPath() {
 };
 
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -981,7 +1245,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":12}],9:[function(require,module,exports){
+},{"util/":15}],12:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -1006,7 +1270,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -1102,14 +1366,14 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],11:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],12:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1699,4 +1963,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":11,"_process":10,"inherits":9}]},{},[6]);
+},{"./support/isBuffer":14,"_process":13,"inherits":12}]},{},[9]);
