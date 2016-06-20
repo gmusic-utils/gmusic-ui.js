@@ -111,8 +111,8 @@ var PlaylistNamespace = function (_GMusicNamespace) {
           return clearTimeouts() && reject('Playlist took too long to load, it might not exist');
         }, 10000);
         waitForPageInterval = setInterval(function () {
-          var info = document.querySelector('.material-container-details');
-          if (info && info.querySelector('.title').innerText === playlist.name) {
+          var info = document.querySelector(PlaylistNamespace.selectors.playlistInfoContainer);
+          if (info && info.querySelector(PlaylistNamespace.selectors.playlistTitle).innerText === playlist.name) {
             clearTimeouts();
             resolve();
           }
@@ -168,7 +168,7 @@ var PlaylistNamespace = function (_GMusicNamespace) {
     key: 'play',
     value: function play(playlist) {
       return this._navigate(playlist).then(function () {
-        document.querySelector('.material-container-details [data-id="play"]').click();
+        document.querySelector(PlaylistNamespace.selectors.playlistInfoContainer + ' ' + PlaylistNamespace.selectors.playButton).click();
       });
     }
   }, {
@@ -181,8 +181,8 @@ var PlaylistNamespace = function (_GMusicNamespace) {
       (0, _assert2.default)(playlist.name, 'Expected playlist to have a property "name" but it did not');
       (0, _assert2.default)(track.id, 'Expected track to have a property "id" but it did not');
       return this._navigate(playlist).then(function () {
-        var container = document.querySelector('#mainContainer');
-        var songQueryString = '.song-row[data-id="' + track.id + '"] [data-id="play"]';
+        var container = document.querySelector(PlaylistNamespace.selectors.mainContainer);
+        var songQueryString = '.song-row[data-id="' + track.id + '"] ' + PlaylistNamespace.selectors.playButton;
         var songPlayButton = document.querySelector(songQueryString);
         var initial = container.scrollTop;
 
@@ -220,6 +220,12 @@ var PlaylistNamespace = function (_GMusicNamespace) {
   return PlaylistNamespace;
 }(_GMusicNamespace3.default);
 
+PlaylistNamespace.selectors = {
+  mainContainer: '#mainContainer',
+  playButton: '[data-id="play"]',
+  playlistInfoContainer: '.material-container-details',
+  playlistTitle: '.title'
+};
 exports.default = PlaylistNamespace;
 
 
@@ -860,23 +866,32 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var findContextPath = exports.findContextPath = function findContextPath() {
   var path = void 0;
-  Object.keys(window.APPCONTEXT).forEach(function (key1) {
+  Object.keys(window.APPCONTEXT).some(function (key1) {
     if (_typeof(window.APPCONTEXT[key1]) === 'object') {
-      (function () {
+      var _ret = function () {
         var firstLevel = window.APPCONTEXT[key1] || {};
-        Object.keys(firstLevel).forEach(function (key2) {
-          if (Array.isArray(firstLevel[key2]) && firstLevel[key2].length > 0) {
-            (function () {
-              var secondLevel = firstLevel[key2][0] || {};
-              Object.keys(secondLevel).forEach(function (key3) {
-                if (secondLevel[key3] && _typeof(secondLevel[key3]) === 'object' && secondLevel[key3].queue && secondLevel[key3].all) {
-                  path = [key1, key2, key3];
-                }
-              });
-            })();
-          }
-        });
-      })();
+        return {
+          v: Object.keys(firstLevel).some(function (key2) {
+            if (Array.isArray(firstLevel[key2]) && firstLevel[key2].length > 0) {
+              var _ret2 = function () {
+                var secondLevel = firstLevel[key2][0] || {};
+                return {
+                  v: Object.keys(secondLevel).some(function (key3) {
+                    if (secondLevel[key3] && _typeof(secondLevel[key3]) === 'object' && secondLevel[key3].queue && secondLevel[key3].all) {
+                      path = [key1, key2, key3];
+                      return true;
+                    }
+                  })
+                };
+              }();
+
+              if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
+            }
+          })
+        };
+      }();
+
+      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
     }
   });
 
