@@ -175,16 +175,11 @@ Immediately triggers a new search for the given text
 - retVal `Promise` - A promise that will resolve with the results of the search you just performed.
 The promise will be rejected with a timeout error if the search takes too long.
 
-#### `search.playResult(searchText, result)`
+#### `search.playResult(result)`
 Immediately attempts to play the given result.  If we fail to play the given result
 an error will be thrown.
 
-- searchText `String` The search text that causes the search result to appear
 - result [`Album`](#album) | [`Artist`](#artist) | [`Track`](#track) - An object returned from `getResults()` that you wish to play
-
-**Returns:**
-- retVal `Promise` - A promise that will resolve when the result starts playing.
-The promise will be rejected with a timeout error if the search takes too long.
 
 ## Hooks
 Hooks are bound the same way as the [gmusic.js](https://github.com/gmusic-utils/gmusic.js#hooks) hooks.

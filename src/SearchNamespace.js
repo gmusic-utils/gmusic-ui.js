@@ -140,16 +140,13 @@ export default class SearchNamespace extends GMusicNamespace {
     return /^#\/sr\//g.test(window.location.hash);
   }
 
-  playResult(resultSearchText, resultObject) {
-    return this.performSearch(resultSearchText)
-      .then(() => {
-        const trackPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.playButton}`);
-        const otherPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.cardPlayButton}`);
-        if (!trackPlay && !otherPlay) {
-          throw new Error('Failed to play result, it must not be in this search');
-        }
-        (trackPlay || otherPlay).click();
-      });
+  playResult(resultObject) {
+    const trackPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.playButton}`);
+    const otherPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.cardPlayButton}`);
+    if (!trackPlay && !otherPlay) {
+      throw new Error('Failed to play result, it must not be in this search');
+    }
+    (trackPlay || otherPlay).click();
   }
 
   performSearch(text) {

@@ -555,15 +555,13 @@ var SearchNamespace = function (_GMusicNamespace) {
     }
   }, {
     key: 'playResult',
-    value: function playResult(resultSearchText, resultObject) {
-      return this.performSearch(resultSearchText).then(function () {
-        var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.playButton);
-        var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.cardPlayButton);
-        if (!trackPlay && !otherPlay) {
-          throw new Error('Failed to play result, it must not be in this search');
-        }
-        (trackPlay || otherPlay).click();
-      });
+    value: function playResult(resultObject) {
+      var trackPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.playButton);
+      var otherPlay = document.querySelector('[data-id="' + resultObject.id + '"] ' + SearchNamespace.selectors.cardPlayButton);
+      if (!trackPlay && !otherPlay) {
+        throw new Error('Failed to play result, it must not be in this search');
+      }
+      (trackPlay || otherPlay).click();
     }
   }, {
     key: 'performSearch',
