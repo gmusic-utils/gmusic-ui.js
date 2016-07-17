@@ -12,11 +12,16 @@ export const findContextPath = () => {
               path = [key1, key2, key3];
               return true;
             }
+            return false;
           });
         }
+        return false;
       });
     }
+    return false;
   });
 
   return path;
 };
+
+export default findContextPath;

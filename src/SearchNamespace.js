@@ -88,7 +88,7 @@ export default class SearchNamespace extends GMusicNamespace {
         elem.querySelector(SearchNamespace.selectors.cardTitle).textContent,
         elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
         // DEV: Remove trailing path params from image with path such as
-        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
+        //     https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
         elem.querySelector('img').src.replace('=w220-c-h220-e100', '')
       ));
     });
@@ -100,7 +100,7 @@ export default class SearchNamespace extends GMusicNamespace {
       let image = elem.querySelector('img');
       if (image) {
         // DEV: Remove trailing path params from image with path such as
-        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
+        //     https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
         image = image.src.replace('=w190-c-h190-e100', '');
       } else {
         image = null;
@@ -123,7 +123,7 @@ export default class SearchNamespace extends GMusicNamespace {
         artist: this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.artist), 'Unknown Artist'),
         album: this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.album), 'Unknown Album'),
         index,
-        duration: parseInt(durationParts[0], 10) * 60 + parseInt(durationParts[1], 10),
+        duration: (parseInt(durationParts[0], 10) * 60) + parseInt(durationParts[1], 10),
         playCount: parseInt(this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10),
       }));
     });

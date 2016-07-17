@@ -27,7 +27,9 @@ export default class Playlist {
       });
     }
     if (!songArrayPath) return playlist;
-    playlist.addTracks(items.map((track, index) => Track.fromTrackArray(track[songArrayPath[0]][songArrayPath[1]], track.index || index + 1)));
+    playlist.addTracks(
+      items.map((track, index) => Track.fromTrackArray(track[songArrayPath[0]][songArrayPath[1]], track.index || index + 1))
+    );
     return playlist;
   };
 

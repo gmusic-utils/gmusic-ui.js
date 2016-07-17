@@ -4,6 +4,7 @@ import Playlist from './Structs/Playlist';
 
 import { findContextPath } from './utils/context';
 
+/** Class representing the PlaylistNamespace. */
 export default class PlaylistNamespace extends GMusicNamespace {
   static selectors = {
     mainContainer: '#mainContainer',
@@ -12,6 +13,9 @@ export default class PlaylistNamespace extends GMusicNamespace {
     playlistTitle: '.title',
   };
 
+  /**
+   * Creates a PlaylistNamespace
+   */
   constructor(...args) {
     super(...args);
     this.path = findContextPath();
@@ -74,6 +78,10 @@ export default class PlaylistNamespace extends GMusicNamespace {
     });
   }
 
+  /**
+   * Gets all the users playlists
+   * @return {Playlist[]} An array of all the users playlists
+   */
   getAll() {
     return Object.keys(this._playlists).filter((key) =>
       key !== 'queue' && key !== 'all' && this._playlists[key].ha.type === 'pl'
@@ -83,6 +91,11 @@ export default class PlaylistNamespace extends GMusicNamespace {
     });
   }
 
+  /**
+   * @param {Playlist} playlist - A Playlist object from getAll
+   * Plays the given playlist
+   * @return {Promise} A promise that resolves when the playlist starts playing
+   */
   play(playlist) {
     return this._navigate(playlist)
       .then(() => {
@@ -90,6 +103,12 @@ export default class PlaylistNamespace extends GMusicNamespace {
       });
   }
 
+  /**
+   * @param {Playlist} playlist - A Playlist object from getAll
+   * @param {Track} track - A Track object that is contained in the supplied Playlist
+   * Plays the given track from the given playlist
+   * @return {Promise} A promise that resolves when the track starts playing
+   */
   playWithTrack(playlist = {}, track) {
     assert(playlist.id, 'Expected playlist to have a property "id" but it did not');
     assert(playlist.name, 'Expected playlist to have a property "name" but it did not');

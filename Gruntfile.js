@@ -25,12 +25,6 @@ module.exports = (grunt) => {
         },
       },
     },
-    eslint: {
-      options: {
-        configFile: '.eslintrc',
-      },
-      src: ['src/*.js'],
-    },
     uglify: {
       dist: {
         files: {
@@ -51,9 +45,6 @@ module.exports = (grunt) => {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('gruntify-eslint');
 
-
-  grunt.registerTask('test', ['eslint']);
-  grunt.registerTask('build', ['eslint', 'babel', 'browserify', 'uglify']);
+  grunt.registerTask('build', ['babel', 'browserify', 'uglify']);
 };

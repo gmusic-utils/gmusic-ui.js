@@ -69,8 +69,14 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+/** Class representing the PlaylistNamespace. */
+
 var PlaylistNamespace = function (_GMusicNamespace) {
   _inherits(PlaylistNamespace, _GMusicNamespace);
+
+  /**
+   * Creates a PlaylistNamespace
+   */
 
   function PlaylistNamespace() {
     var _Object$getPrototypeO;
@@ -152,6 +158,12 @@ var PlaylistNamespace = function (_GMusicNamespace) {
         that.emitter.emit('change:playlists', current);
       });
     }
+
+    /**
+     * Gets all the users playlists
+     * @return {Playlist[]} An array of all the users playlists
+     */
+
   }, {
     key: 'getAll',
     value: function getAll() {
@@ -164,6 +176,13 @@ var PlaylistNamespace = function (_GMusicNamespace) {
         return _Playlist2.default.fromPlaylistObject(key, playlist);
       });
     }
+
+    /**
+     * @param {Playlist} playlist - A Playlist object from getAll
+     * Plays the given playlist
+     * @return {Promise} A promise that resolves when the playlist starts playing
+     */
+
   }, {
     key: 'play',
     value: function play(playlist) {
@@ -171,6 +190,14 @@ var PlaylistNamespace = function (_GMusicNamespace) {
         document.querySelector(PlaylistNamespace.selectors.playlistInfoContainer + ' ' + PlaylistNamespace.selectors.playButton).click();
       });
     }
+
+    /**
+     * @param {Playlist} playlist - A Playlist object from getAll
+     * @param {Track} track - A Track object that is contained in the supplied Playlist
+     * Plays the given track from the given playlist
+     * @return {Promise} A promise that resolves when the track starts playing
+     */
+
   }, {
     key: 'playWithTrack',
     value: function playWithTrack() {
@@ -511,7 +538,7 @@ var SearchNamespace = function (_GMusicNamespace) {
       Array.prototype.forEach.call(albumElems, function (elem) {
         albums.push(new _Album2.default(elem.getAttribute('data-id'), elem.querySelector(SearchNamespace.selectors.cardTitle).textContent, elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
         // DEV: Remove trailing path params from image with path such as
-        //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
+        //     https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
         elem.querySelector('img').src.replace('=w220-c-h220-e100', '')));
       });
 
@@ -522,7 +549,7 @@ var SearchNamespace = function (_GMusicNamespace) {
         var image = elem.querySelector('img');
         if (image) {
           // DEV: Remove trailing path params from image with path such as
-          //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
+          //     https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w190-c-h190-e100
           image = image.src.replace('=w190-c-h190-e100', '');
         } else {
           image = null;
@@ -623,12 +650,35 @@ Object.defineProperty(exports, "__esModule", {
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Album = function Album(id, name, artistName, albumArt) {
+var Album =
+/**
+ * @param {String} id
+ * @param {String} name
+ * @param {String} artistName
+ * @param {String} albumArt
+ */
+function Album(id, name, artistName, albumArt) {
   _classCallCheck(this, Album);
 
+  /**
+   * Unique ID for this album
+   * @type {String}
+   */
   this.id = id;
+  /**
+   * The name of the album
+   * @type {String}
+   */
   this.name = name;
+  /**
+   * The name of the artist for the album
+   * @type {String}
+   */
   this.artist = artistName;
+  /**
+   * URL to the albumArt for this album
+   * @type {String}
+   */
   this.albumArt = albumArt;
 };
 
@@ -754,6 +804,19 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Track = function () {
+
+  /**
+   * @param {String} id
+   * @param {String} title
+   * @param {String} albumArt
+   * @param {String} artist
+   * @param {String} album
+   * @param {String} artist
+   * @param {Number} [index=0]
+   * @param {Number} duration
+   * @param {Number} [playCount=1]
+   */
+
   function Track(_ref) {
     var id = _ref.id;
     var title = _ref.title;
@@ -768,16 +831,55 @@ var Track = function () {
 
     _classCallCheck(this, Track);
 
+    /**
+     * Unique ID for this track
+     * @type {String}
+     */
     this.id = id;
+    /**
+     * The title of the track
+     * @type {String}
+     */
     this.title = title;
+    /**
+     * The URL to the albumArt for the track
+     * @type {String}
+     */
     this.albumArt = albumArt;
+    /**
+     * The name of the Artist for the track
+     * @type {String}
+     */
     this.artist = artist;
+    /**
+     * The name of the Album for the track
+     * @type {String}
+     */
     this.album = album;
+    /**
+     * The index position (starting at 1) of the track in the object that is storing a collection of tracks
+     * @type {Number}
+     */
     this.index = index;
 
+    /**
+     * Length of this track in milliseconds
+     * @type {Number}
+     */
     this.duration = duration;
+    /**
+     * Amount of times the user has played this track
+     * @type {Number}
+     */
     this.playCount = playCount;
   }
+
+  /**
+   * Checks equality between two tracks
+   * @param {Track} other The track to compare this one to
+   * @return {Boolean}
+   */
+
 
   _createClass(Track, [{
     key: "equals",
@@ -881,22 +983,27 @@ var findContextPath = exports.findContextPath = function findContextPath() {
                       path = [key1, key2, key3];
                       return true;
                     }
+                    return false;
                   })
                 };
               }();
 
               if ((typeof _ret2 === 'undefined' ? 'undefined' : _typeof(_ret2)) === "object") return _ret2.v;
             }
+            return false;
           })
         };
       }();
 
       if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
     }
+    return false;
   });
 
   return path;
 };
+
+exports.default = findContextPath;
 
 
 },{}],11:[function(require,module,exports){
@@ -1289,6 +1396,31 @@ if (typeof Object.create === 'function') {
 // shim for using process in browser
 
 var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+(function () {
+  try {
+    cachedSetTimeout = setTimeout;
+  } catch (e) {
+    cachedSetTimeout = function () {
+      throw new Error('setTimeout is not defined');
+    }
+  }
+  try {
+    cachedClearTimeout = clearTimeout;
+  } catch (e) {
+    cachedClearTimeout = function () {
+      throw new Error('clearTimeout is not defined');
+    }
+  }
+} ())
 var queue = [];
 var draining = false;
 var currentQueue;
@@ -1313,7 +1445,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = setTimeout(cleanUpNextTick);
+    var timeout = cachedSetTimeout(cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -1330,7 +1462,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    clearTimeout(timeout);
+    cachedClearTimeout(timeout);
 }
 
 process.nextTick = function (fun) {
@@ -1342,7 +1474,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        setTimeout(drainQueue, 0);
+        cachedSetTimeout(drainQueue, 0);
     }
 };
 

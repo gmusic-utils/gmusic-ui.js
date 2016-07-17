@@ -6,7 +6,10 @@ import SearchNamespace from './SearchNamespace';
 class GMusicExtender {
   constructor() {
     this.controllers = {};
-    assert(window.GMusic && window.GMusic._protoObj, 'GMusicUI relies on "window.GMusic" existing in the global scope, we couldn\'t find it');
+    assert(
+      window.GMusic && window.GMusic._protoObj,
+      'GMusicUI relies on "window.GMusic" existing in the global scope, we couldn\'t find it'
+    );
   }
 
   addNamespace(namespaceName, namespace) {
