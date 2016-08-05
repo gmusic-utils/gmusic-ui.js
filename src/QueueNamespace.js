@@ -1,5 +1,5 @@
 import assert from 'assert';
-import GMusicNamespace from './GMusicNamespace';
+import { GMusicNamespace } from 'gmusic.js';
 import Playlist from './Structs/Playlist';
 
 import { findContextPath } from './utils/context';

@@ -1,8 +1,8 @@
-import GMusicNamespace from './GMusicNamespace';
+import { GMusicNamespace } from 'gmusic.js';
 
 import Album from './Structs/Album';
 import Artist from './Structs/Artist';
-import Track from './Structs/Track';
+import { Track } from 'gmusic.js';
 
 import { findContextPath } from './utils/context';
 

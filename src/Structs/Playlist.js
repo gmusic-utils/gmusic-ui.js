@@ -1,4 +1,4 @@
-import Track from './Track';
+import { Track } from 'gmusic.js';
 
 let songArrayPath;
 
