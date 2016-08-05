@@ -41,7 +41,7 @@ export default class QueueNamespace extends GMusicNamespace {
         }
       }
       queue = newQueue;
-      if (changed) that.emitter.emit('change:queue', newQueue);
+      if (changed) that.emit('change:queue', newQueue);
     });
   }
 

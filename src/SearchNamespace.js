@@ -62,7 +62,7 @@ export default class SearchNamespace extends GMusicNamespace {
           //      If we push this function to the end of the execution queue, the render
           //      will complete syncronously before calling
           setTimeout(() => {
-            that.emitter.emit('change:search-results', that.getCurrentResults());
+            that.emit('change:search-results', that.getCurrentResults());
           }, 0);
         }
       }
@@ -156,7 +156,10 @@ export default class SearchNamespace extends GMusicNamespace {
     window.location.hash = newHash;
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => reject('Search timed out'), 10000);
-      this.emitter.once('change:search-results', (newResults) => {
+      let once = false;
+      this.on('change:search-results', (newResults) => {
+        if (once) return;
+        once = true;
         clearTimeout(timeout);
         resolve(newResults);
       });

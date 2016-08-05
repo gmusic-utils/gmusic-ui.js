@@ -70,7 +70,7 @@ export default class PlaylistNamespace extends GMusicNamespace {
       });
       previous = current;
       if (!changed) return;
-      that.emitter.emit('change:playlists', current);
+      that.emit('change:playlists', current);
     });
   }
 
