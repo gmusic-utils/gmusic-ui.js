@@ -2,9 +2,9 @@ import PlaylistNamespace from './PlaylistNamespace';
 import QueueNamespace from './QueueNamespace';
 import SearchNamespace from './SearchNamespace';
 
-import Album from './structs/Album';
-import Artist from './structs/Artist';
-import Playlist from './structs/Playlist';
+import Album from './Structs/Album';
+import Artist from './Structs/Artist';
+import Playlist from './Structs/Playlist';
 
 const wrap = (GMusic) => {
   GMusic.Album = Album;
@@ -14,7 +14,7 @@ const wrap = (GMusic) => {
   GMusic.addNamespace('playlists', PlaylistNamespace);
   GMusic.addNamespace('queue', QueueNamespace);
   GMusic.addNamespace('search', SearchNamespace);
-}
+};
 
 if (typeof window !== 'undefined' && window.GMusic) {
   wrap(window.GMusic);

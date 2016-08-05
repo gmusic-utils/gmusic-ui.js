@@ -1,8 +1,7 @@
-import { GMusicNamespace } from 'gmusic.js';
+import { GMusicNamespace, Track } from 'gmusic.js';
 
 import Album from './Structs/Album';
 import Artist from './Structs/Artist';
-import { Track } from 'gmusic.js';
 
 import { findContextPath } from './utils/context';
 
@@ -123,7 +122,7 @@ export default class SearchNamespace extends GMusicNamespace {
         artist: this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.artist), 'Unknown Artist'),
         album: this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.album), 'Unknown Album'),
         index,
-        duration: parseInt(durationParts[0], 10) * 60 + parseInt(durationParts[1], 10),
+        duration: parseInt(((durationParts[0], 10) * 60) + parseInt(durationParts[1], 10), 10),
         playCount: parseInt(this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10),
       }));
     });

@@ -23,7 +23,9 @@
   "bugs": {
     "url": "https://github.com/gmusic-utils/gmusic-ui.js/issues"
   },
-  "dependencies": {},
+  "dependencies": {
+    "gmusic.js": "^6.0.5"
+  },
   "devDependencies": {
     "babel-eslint": "^6.1.2",
     "babel-plugin-transform-class-properties": "^6.6.0",
@@ -31,7 +33,6 @@
     "eslint": "^3.2.2",
     "eslint-config-airbnb-base": "^5.0.1",
     "eslint-plugin-import": "^1.12.0",
-    "gmusic.js": "^6.0.5",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-browserify": "^0.5.1",
