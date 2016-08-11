@@ -76,7 +76,9 @@ export default class PlaylistNamespace extends GMusicNamespace {
 
   getAll() {
     return Object.keys(this._playlists).filter((key) =>
-      key !== 'queue' && key !== 'all' && Object.keys(this._playlists[key]).some((plKey) => this._playlists[key][plKey].type === 'pl')
+      key !== 'queue' && key !== 'all' && Object.keys(this._playlists[key]).some(
+        (plKey) => typeof this._playlists[key][plKey] === 'object' && this._playlists[key][plKey].type === 'pl'
+      )
     ).map((key) => {
       const playlist = this._playlists[key];
       return Playlist.fromPlaylistObject(key, playlist);
