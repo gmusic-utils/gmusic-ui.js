@@ -36,7 +36,7 @@ export default class PlaylistNamespace extends GMusicNamespace {
       waitTimeout = setTimeout(() => clearTimeouts() && reject('Playlist took too long to load, it might not exist'), 10000);
       waitForPageInterval = setInterval(() => {
         const info = document.querySelector(PlaylistNamespace.selectors.playlistInfoContainer);
-        if (info && info.querySelector(PlaylistNamespace.selectors.playlistTitle).innerText === playlist.name) {
+        if (info && info.querySelector(PlaylistNamespace.selectors.playlistTitle).innerText.trim() === playlist.name) {
           clearTimeouts();
           resolve();
         }
