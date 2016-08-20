@@ -1,3 +1,4 @@
+import LibraryNamespace from './LibraryNamespace';
 import PlaylistNamespace from './PlaylistNamespace';
 import QueueNamespace from './QueueNamespace';
 import SearchNamespace from './SearchNamespace';
@@ -11,6 +12,7 @@ const wrap = (GMusic) => {
   GMusic.Artist = Artist;
   GMusic.Playlist = Playlist;
 
+  GMusic.addNamespace('library', LibraryNamespace);
   GMusic.addNamespace('playlists', PlaylistNamespace);
   GMusic.addNamespace('queue', QueueNamespace);
   GMusic.addNamespace('search', SearchNamespace);

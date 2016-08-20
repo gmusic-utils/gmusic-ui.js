@@ -3,7 +3,7 @@ import { Track } from 'gmusic.js';
 let songArrayPath;
 
 export default class Playlist {
-  static fromPlaylistObject = (id, playlistObject) => {
+  static fromPlaylistObject = (id, playlistObject, useAlbumIndex = false) => {
     const playlist = new Playlist(id, playlistObject.getTitle().replace(/ playlist$/g, ''));
     let items;
     if (playlistObject.items) {
@@ -27,7 +27,9 @@ export default class Playlist {
       });
     }
     if (!songArrayPath) return playlist;
-    playlist.addTracks(items.map((track, index) => Track.fromTrackArray(track[songArrayPath[0]][songArrayPath[1]], track.index || index + 1)));
+    playlist.addTracks(items.map((track, index) => Track.fromTrackArray(
+      track[songArrayPath[0]][songArrayPath[1]], track.index || (useAlbumIndex ? null : index + 1)
+    )));
     return playlist;
   };
 

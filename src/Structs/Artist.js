@@ -3,5 +3,6 @@ export default class Artist {
     this.id = id;
     this.name = name;
     this.image = image;
+    this.albums = [];
   }
 }

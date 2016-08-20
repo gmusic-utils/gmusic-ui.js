@@ -4,5 +4,6 @@ export default class Album {
     this.name = name;
     this.artist = artistName;
     this.albumArt = albumArt;
+    this.tracks = [];
   }
 }
