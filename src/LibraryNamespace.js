@@ -123,7 +123,7 @@ export default class LibraryNamespace extends GMusicNamespace {
   playTrack(track) {
     return this._navigateToAlbum({
       id: track.albumId,
-      name: track.album
+      name: track.album,
     })
       .then(() => scrollToPlaySong(track));
   }
