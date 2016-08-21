@@ -74,7 +74,7 @@ export default class LibraryNamespace extends GMusicNamespace {
     const albums = {};
     this.getTracks().forEach((track) => {
       const uniq = `${track.albumArt}_${track.album}`;
-      albums[uniq] = albums[uniq] || new Album(track.album, track.album, track.albumArtist || track.artist, track.albumArt);
+      albums[uniq] = albums[uniq] || new Album(track.albumId, track.album, track.albumArtist || track.artist, track.albumArt);
       if (track.albumArtist) {
         albums[uniq].isAlbumArtist = true;
       }
@@ -108,7 +108,7 @@ export default class LibraryNamespace extends GMusicNamespace {
           resolve();
         }
       }, 10);
-      window.location.hash = `/album//${album.isAlbumArtist ? album.artist : ''}/${album.name.replace(/ /g, '+')}`;
+      window.location.hash = `/album/${album.id}`;
     });
   }
 
@@ -120,8 +120,11 @@ export default class LibraryNamespace extends GMusicNamespace {
       });
   }
 
-  playTrackFromAlbum(track, album) {
-    return this._navigateToAlbum(album)
+  playTrack(track) {
+    return this._navigateToAlbum({
+      id: track.albumId,
+      name: track.album
+    })
       .then(() => scrollToPlaySong(track));
   }
 }
