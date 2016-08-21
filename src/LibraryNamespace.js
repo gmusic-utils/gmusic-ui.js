@@ -108,7 +108,11 @@ export default class LibraryNamespace extends GMusicNamespace {
           resolve();
         }
       }, 10);
-      window.location.hash = `/album/${album.id}`;
+      if (album.id) {
+        window.location.hash = `/album/${album.id}`;
+      } else {
+        window.location.hash = `/album//${album.artist.replace(/ /g, '+')}/${album.name.replace(/ /g, '+')}`;
+      }
     });
   }
 
@@ -124,6 +128,7 @@ export default class LibraryNamespace extends GMusicNamespace {
     return this._navigateToAlbum({
       id: track.albumId,
       name: track.album,
+      artist: track.artist,
     })
       .then(() => scrollToPlaySong(track));
   }
