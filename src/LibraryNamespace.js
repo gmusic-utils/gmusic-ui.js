@@ -21,7 +21,7 @@ export default class LibraryNamespace extends GMusicNamespace {
     this.addMethod('getArtists', this.getArtists.bind(this));
     this.addMethod('getLibrary', this.getLibrary.bind(this));
     this.addMethod('playAlbum', this.playAlbum.bind(this));
-    this.addMethod('playTrackFromAlbum', this.playTrackFromAlbum.bind(this));
+    this.addMethod('playTrack', this.playTrack.bind(this));
   }
 
   _watchTracks() {
