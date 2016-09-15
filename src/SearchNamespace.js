@@ -9,6 +9,7 @@ export default class SearchNamespace extends GMusicNamespace {
   static selectors = {
     albumResults: '.lane-content > [data-type=album]',
     artistResults: '.lane-content > [data-type=artist]',
+    bestMatch: '[data-type=sr]',
     cardPlayButton: '.play-button-container',
     cardTitle: '.details .title',
     cardSubTitle: '.details .sub-title',
@@ -78,18 +79,23 @@ export default class SearchNamespace extends GMusicNamespace {
       throw new Error('Can\'t get search results when the user is not searching');
     }
 
+    let bestMatch;
+    const bestMatchNode = document.querySelector(SearchNamespace.selectors.bestMatch);
+    const isBestMatch = (node) => (bestMatchNode ? bestMatchNode.contains(node) : false);
+
     const albumElems = document.querySelectorAll(SearchNamespace.selectors.albumResults);
     const albums = [];
 
     Array.prototype.forEach.call(albumElems, (elem) => {
-      albums.push(new Album(
+      const album = new Album(
         elem.getAttribute('data-id'),
         elem.querySelector(SearchNamespace.selectors.cardTitle).textContent,
         elem.querySelector(SearchNamespace.selectors.cardSubTitle).textContent,
         // DEV: Remove trailing path params from image with path such as
         //      https://lh3.googleusercontent.com/4Yht2ETGQNme6QgQi-imsOK788OEHEhldqgBjeR8hWi8YsUMbn_AY0c5COHB4wK5C3Hjiw-y3Q=w220-c-h220-e100
         elem.querySelector('img').src.replace('=w220-c-h220-e100', '')
-      ));
+      );
+      isBestMatch(elem) ? bestMatch = { type: 'album', value: album } : albums.push(album); // eslint-disable-line
     });
 
     const artistElems = document.querySelectorAll(SearchNamespace.selectors.artistResults);
@@ -104,18 +110,19 @@ export default class SearchNamespace extends GMusicNamespace {
       } else {
         image = null;
       }
-      artists.push(new Artist(
+      const artist = new Artist(
         elem.getAttribute('data-id'),
         elem.querySelector(SearchNamespace.selectors.cardTitle).textContent,
         image
-      ));
+      );
+      isBestMatch(elem) ? bestMatch = { type: 'artist', value: artist } : artists.push(artist); // eslint-disable-line
     });
 
     const trackElems = document.querySelectorAll(SearchNamespace.selectors.trackResults);
     const tracks = [];
     Array.prototype.forEach.call(trackElems, (elem, index) => {
       const durationParts = elem.querySelector(SearchNamespace.selectors.trackColumns.duration).textContent.trim().split(':');
-      tracks.push(new Track({
+      const track = new Track({
         id: elem.getAttribute('data-id'),
         title: this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.title), 'Unknown Title'),
         albumArt: elem.querySelector(`${SearchNamespace.selectors.trackColumns.title} img`).src.replace('=s60-e100-c', ''),
@@ -124,13 +131,15 @@ export default class SearchNamespace extends GMusicNamespace {
         index,
         duration: (parseInt(durationParts[0], 10) * 60) + parseInt(durationParts[1], 10),
         playCount: parseInt(this._text(elem.querySelector(SearchNamespace.selectors.trackColumns.playCount), '0'), 10),
-      }));
+      });
+      isBestMatch(elem) ? bestMatch = { type: 'track', value: track } : tracks.push(track); // eslint-disable-line
     });
 
     return {
       searchText: this.getSearchText(),
       albums,
       artists,
+      bestMatch,
       tracks,
     };
   }
