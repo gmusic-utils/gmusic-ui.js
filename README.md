@@ -74,6 +74,10 @@ Then, add it to your HTML and access it via `window.GMusic`.
 ```js
 {
   "searchText": String,   // The text the user searched for to get these results
+  "bestMatch": {
+    "type": String,       // The type of result that is best.  One of "album", "artist" or "track"
+    "value": Album | Artist | Track
+  }
   "albums": Album[],      // An array of albums that are part of these search results
   "artists": Artist[],    // An array of artists that are part of these search results
   "tracks": Track[],      // An array of tracks taht are part of these search results
