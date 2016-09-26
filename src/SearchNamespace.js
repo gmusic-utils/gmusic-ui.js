@@ -13,8 +13,10 @@ export default class SearchNamespace extends GMusicNamespace {
     cardPlayButton: '.play-button-container',
     cardTitle: '.details .title',
     cardSubTitle: '.details .sub-title',
+    cardMoreButton: '.menu-anchor',
     inputBox: 'sj-search-box input',
     playButton: '[data-id="play"]',
+    moreButton: '[data-id="menu"]',
     trackResults: '.songlist-container .song-table tr.song-row',
     trackColumns: {
       album: '[data-col="album"]',
@@ -23,6 +25,12 @@ export default class SearchNamespace extends GMusicNamespace {
       playCount: '[data-col="play-count"]',
       title: '[data-col="title"]',
     },
+    songMenu: '.song-menu',
+    menuItems: {
+      playNext: '#\\:6 .goog-menuitem-content',
+      removeFromQueue: '#\\:7 .goog-menuitem-content',
+      addToQueue: '#\\:8 .goog-menuitem-content'
+    }
   };
 
   constructor(...args) {
@@ -37,6 +45,7 @@ export default class SearchNamespace extends GMusicNamespace {
     this.addMethod('isSearching', this.isSearching.bind(this));
     this.addMethod('performSearch', this.performSearch.bind(this));
     this.addMethod('playResult', this.playResult.bind(this));
+    this.addMethod('queueTrackResult', this.queueTrackResult.bind(this));
   }
 
   _text(elem, def) {
@@ -155,6 +164,29 @@ export default class SearchNamespace extends GMusicNamespace {
       throw new Error('Failed to play result, it must not be in this search');
     }
     (trackPlay || otherPlay).click();
+  }
+
+
+  queueTrackResult(resultObject) {
+    // First, open the menu so we can get at the menu items
+    const trackMore = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.moreButton}`);
+    if (!trackMore) {
+      throw new Error('Failed to locate the menu button for result; it may not be in this search');
+    }
+
+    (trackMore || otherMore).click();
+
+    // Make sure the menu is open, then click the 'add to queue' button
+    const waitForMenuOpen = setInterval(() => {
+      var menu = document.querySelector(SearchNamespace.selectors.songMenu);
+      if (menu.style.display !== 'none') {
+        const queueButton = document.querySelector(`${SearchNamespace.selectors.songMenu} ${SearchNamespace.selectors.menuItems.addToQueue}`);
+        if (!queueButton) {
+          throw new Error('Failed to add result to queue; it may not be possible');
+        }
+        dispatchEvent(queueButton, 'click');
+      }
+    });
   }
 
   performSearch(text) {
