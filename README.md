@@ -172,22 +172,22 @@ an error will be thrown.
 
 - result [`Album`](#album) | [`Artist`](#artist) | [`Track`](#track) - An object returned from `getResults()` that you wish to play
 
-### `search.queueTrack(result)`
+#### `search.queueTrack(result)`
 Attempts to add a result to end of the queue.
 
-- result [`Track`](#track) - An `Track` object returned from `getResults()`.
+- result [`Track`](#track) - A `Track` object returned from `getResults()`.
 
 **Returns:**
-- reVal `Promise` - A promise that will resolve after the track has been added to the queue.
+- retVal `Promise` - A promise that will resolve after the track has been added to the queue.
 The promise will be rejected if the track can't be added.
 
-### `search.playTrackNext(result)`
+#### `search.playTrackNext(result)`
 Attempts to add a result to the queue as the next track to play.
 
-- result [`Track`](#track) - An `Track` object returned from `getResults()`.
+- result [`Track`](#track) - A `Track` object returned from `getResults()`.
 
 **Returns:**
-- reVal `Promise` - A promise that will resolve after the track has been added to the queue.
+- retVal `Promise` - A promise that will resolve after the track has been added to the queue.
 The promise will be rejected if the track can't be added.
 
 ## Hooks
