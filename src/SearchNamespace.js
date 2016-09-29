@@ -27,8 +27,8 @@ export default class SearchNamespace extends GMusicNamespace {
     songMenu: '.song-menu',
     menuItems: {
       playNext: '#\\:6',
-      addToQueue: '#\\:8'
-    }
+      addToQueue: '#\\:8',
+    },
   };
 
   constructor(...args) {
@@ -88,17 +88,17 @@ export default class SearchNamespace extends GMusicNamespace {
     // if the track is off-screen, the first click will not open the menu
     const self = this;
     return new Promise((resolve, reject) => {
-      const waitForMenuOpen = setInterval(((trackObject) => {
+      const waitForMenuOpen = setInterval((function clickItem(trackObject) {
         return () => {
           // Open the menu so we can get at the menu items
-          var trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
+          const trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
           if (!trackMore) {
             clearInterval(waitForMenuOpen);
             reject(new Error('Failed to locate the menu button for result; it may not be in this search'));
           }
           trackMore.click();
 
-          var menu = document.querySelector(SearchNamespace.selectors.songMenu);
+          const menu = document.querySelector(SearchNamespace.selectors.songMenu);
           if (menu.style.display !== 'none') {
             clearInterval(waitForMenuOpen);
             const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
@@ -113,13 +113,13 @@ export default class SearchNamespace extends GMusicNamespace {
 
             resolve();
           }
-        }
+        };
       }).call(self, resultObject));
     });
   }
 
   _triggerMouseEvent(node, eventType) {
-    var clickEvent = document.createEvent('MouseEvents');
+    const clickEvent = document.createEvent('MouseEvents');
     clickEvent.initEvent(eventType, true, true);
     node.dispatchEvent(clickEvent);
   }
