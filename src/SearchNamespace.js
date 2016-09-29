@@ -94,7 +94,7 @@ export default class SearchNamespace extends GMusicNamespace {
           var trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
           if (!trackMore) {
             clearInterval(waitForMenuOpen);
-            throw new Error('Failed to locate the menu button for result; it may not be in this search');
+            reject(new Error('Failed to locate the menu button for result; it may not be in this search'));
           }
           trackMore.click();
 
@@ -103,7 +103,7 @@ export default class SearchNamespace extends GMusicNamespace {
             clearInterval(waitForMenuOpen);
             const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
             if (!button) {
-              throw new Error('Failed to click menu button; it may not be possible');
+              reject(new Error('Failed to click menu button; it may not be possible'));
             }
 
             // A simple 'click' won't do for these menu items.
