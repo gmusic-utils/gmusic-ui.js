@@ -81,38 +81,41 @@ export default class SearchNamespace extends GMusicNamespace {
   // Click on a menu item in the track menu.
   // This should be used for the simple menu items that you can click once and forget,
   // such as 'Add to queue' or 'Play next'.
+  // Returns a promise that resolves after the button has been clicked.
   // resultObject - search result object
   // menuItem - item from SearchNamespace.selectors.menuItems
   _clickTrackMenuItem(resultObject, menuItem) {
     // if the track is off-screen, the first click will not open the menu
     const self = this;
-    const waitForMenuOpen = setInterval((function(trackObject) {
-      return () => {
-        // Open the menu so we can get at the menu items
-        var trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
-        if (!trackMore) {
-          clearInterval(waitForMenuOpen);
-          throw new Error('Failed to locate the menu button for result; it may not be in this search');
-        }
-        trackMore.click();
-
-        var menu = document.querySelector(SearchNamespace.selectors.songMenu);
-        if (menu.style.display !== 'none') {
-          clearInterval(waitForMenuOpen);
-          const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
-          if (!button) {
-            throw new Error('Failed to click menu button; it may not be possible');
+    return new Promise((resolve, reject) => {
+      const waitForMenuOpen = setInterval(((trackObject) => {
+        return () => {
+          // Open the menu so we can get at the menu items
+          var trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
+          if (!trackMore) {
+            clearInterval(waitForMenuOpen);
+            throw new Error('Failed to locate the menu button for result; it may not be in this search');
           }
+          trackMore.click();
 
-          // A simple 'click' won't do for these menu items.
-          // We have to send mousedown and mouseup.
-          this._triggerMouseEvent(button, 'mousedown');
-          this._triggerMouseEvent(button, 'mouseup');
+          var menu = document.querySelector(SearchNamespace.selectors.songMenu);
+          if (menu.style.display !== 'none') {
+            clearInterval(waitForMenuOpen);
+            const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
+            if (!button) {
+              throw new Error('Failed to click menu button; it may not be possible');
+            }
+
+            // A simple 'click' won't do for these menu items.
+            // We have to send mousedown and mouseup.
+            this._triggerMouseEvent(button, 'mousedown');
+            this._triggerMouseEvent(button, 'mouseup');
+
+            resolve();
+          }
         }
-      }
-    }).call(self, resultObject));
-
-    return true;
+      }).call(self, resultObject));
+    });
   }
 
   _triggerMouseEvent(node, eventType) {
