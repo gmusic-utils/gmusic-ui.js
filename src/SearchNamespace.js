@@ -84,28 +84,33 @@ export default class SearchNamespace extends GMusicNamespace {
   // resultObject - search result object
   // menuItem - item from SearchNamespace.selectors.menuItems
   _clickTrackMenuItem(resultObject, menuItem) {
-    // First, open the menu so we can get at the menu items
-    const trackMore = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.moreButton}`);
-    if (!trackMore) {
-      throw new Error('Failed to locate the menu button for result; it may not be in this search');
-    }
-    trackMore.click();
+    // if the track is off-screen, the first click will not open the menu
+    const self = this;
+    const waitForMenuOpen = setInterval((function(trackObject) {
+      return () => {
+        // Open the menu so we can get at the menu items
+        var trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
+        if (!trackMore) {
+          clearInterval(waitForMenuOpen);
+          throw new Error('Failed to locate the menu button for result; it may not be in this search');
+        }
+        trackMore.click();
 
-    var menu = document.querySelector(SearchNamespace.selectors.songMenu);
-    if (menu.style.display !== 'none') {
-      const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
-      if (!button) {
-        throw new Error('Failed to click menu button; it may not be possible');
+        var menu = document.querySelector(SearchNamespace.selectors.songMenu);
+        if (menu.style.display !== 'none') {
+          clearInterval(waitForMenuOpen);
+          const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
+          if (!button) {
+            throw new Error('Failed to click menu button; it may not be possible');
+          }
+
+          // A simple 'click' won't do for these menu items.
+          // We have to send mousedown and mouseup.
+          this._triggerMouseEvent(button, 'mousedown');
+          this._triggerMouseEvent(button, 'mouseup');
+        }
       }
-
-      // A simple 'click' won't do for these menu items.
-      // We have to send mousedown and mouseup.
-      this._triggerMouseEvent(button, 'mousedown');
-      this._triggerMouseEvent(button, 'mouseup');
-    }
-    else {
-      throw new Error('Failed to open the track menu');
-    }
+    }).call(self, resultObject));
 
     return true;
   }
