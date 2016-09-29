@@ -78,6 +78,11 @@ export default class SearchNamespace extends GMusicNamespace {
     });
   }
 
+  // Click on a menu item in the track menu.
+  // This should be used for the simple menu items that you can click once and forget,
+  // such as 'Add to queue' or 'Play next'.
+  // resultObject - search result object
+  // menuItem - item from SearchNamespace.selectors.menuItems
   _clickTrackMenuItem(resultObject, menuItem) {
     // First, open the menu so we can get at the menu items
     const trackMore = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.moreButton}`);
@@ -98,6 +103,11 @@ export default class SearchNamespace extends GMusicNamespace {
       this._triggerMouseEvent(button, 'mousedown');
       this._triggerMouseEvent(button, 'mouseup');
     }
+    else {
+      throw new Error('Failed to open the track menu');
+    }
+
+    return true;
   }
 
   _triggerMouseEvent(node, eventType) {
@@ -194,11 +204,11 @@ export default class SearchNamespace extends GMusicNamespace {
   }
 
   queueTrack(resultObject) {
-    this._clickTrackMenuItem(resultObject, SearchNamespace.selectors.menuItems.addToQueue);
+    return this._clickTrackMenuItem(resultObject, SearchNamespace.selectors.menuItems.addToQueue);
   }
 
   playTrackNext(resultObject) {
-    this._clickTrackMenuItem(resultObject, SearchNamespace.selectors.menuItems.playNext);
+    return this._clickTrackMenuItem(resultObject, SearchNamespace.selectors.menuItems.playNext);
   }
 
   performSearch(text) {
