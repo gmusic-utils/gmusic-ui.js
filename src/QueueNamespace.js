@@ -2,6 +2,7 @@ import assert from 'assert';
 import { GMusicNamespace } from 'gmusic.js';
 import Playlist from './Structs/Playlist';
 
+import changeSpy from './utils/changeSpy';
 import { findContextPath } from './utils/context';
 
 const dispatchEvent = (el, etype) => {
@@ -29,7 +30,7 @@ export default class QueueNamespace extends GMusicNamespace {
     const that = this;
 
     let queue = this.getTracks();
-    window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
+    changeSpy(window.APPCONTEXT[this.path[0]][this.path[1]][0], () => {
       const newQueue = this.getTracks();
       let changed = false;
       for (let i = 0; i < newQueue.length; i++) {

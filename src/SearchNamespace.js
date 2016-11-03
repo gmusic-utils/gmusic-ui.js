@@ -3,6 +3,7 @@ import { GMusicNamespace, Track } from 'gmusic.js';
 import Album from './Structs/Album';
 import Artist from './Structs/Artist';
 
+import changeSpy from './utils/changeSpy';
 import { findContextPath } from './utils/context';
 
 export default class SearchNamespace extends GMusicNamespace {
@@ -55,7 +56,7 @@ export default class SearchNamespace extends GMusicNamespace {
       searchChanged = 2;
     });
 
-    window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
+    changeSpy(window.APPCONTEXT[this.path[0]][this.path[1]][0], () => {
       if (searchChanged > 0) {
         searchChanged -= 1;
         if (searchChanged === 0) {

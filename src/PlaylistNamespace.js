@@ -2,6 +2,7 @@ import assert from 'assert';
 import { GMusicNamespace } from 'gmusic.js';
 import Playlist from './Structs/Playlist';
 
+import changeSpy from './utils/changeSpy';
 import { findContextPath } from './utils/context';
 import scrollToPlaySong from './utils/scrollToPlaySong';
 
@@ -49,7 +50,7 @@ export default class PlaylistNamespace extends GMusicNamespace {
     const that = this;
     let previous = this.getAll();
 
-    window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
+    changeSpy(window.APPCONTEXT[this.path[0]][this.path[1]][0], () => {
       this._playlists = Object.assign({}, this._playlists, window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]]);
       const current = this.getAll();
       let changed = false;

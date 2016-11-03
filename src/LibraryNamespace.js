@@ -3,6 +3,7 @@ import Album from './Structs/Album';
 import Artist from './Structs/Artist';
 import Playlist from './Structs/Playlist';
 
+import changeSpy from './utils/changeSpy';
 import { findContextPath } from './utils/context';
 import scrollToPlaySong from './utils/scrollToPlaySong';
 
@@ -28,7 +29,7 @@ export default class LibraryNamespace extends GMusicNamespace {
     const that = this;
 
     let tracks = this.getTracks();
-    window.APPCONTEXT[this.path[0]][this.path[1]][0].addEventListener('E', () => {
+    changeSpy(window.APPCONTEXT[this.path[0]][this.path[1]][0], () => {
       const newTracks = this.getTracks();
       let changed = false;
       for (let i = 0; i < newTracks.length; i++) {
