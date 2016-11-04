@@ -16,6 +16,7 @@ export default class SearchNamespace extends GMusicNamespace {
     cardSubTitle: '.details .sub-title',
     inputBox: 'sj-search-box input',
     playButton: '[data-id="play"]',
+    moreButton: '[data-id="menu"]',
     trackResults: '.songlist-container .song-table tr.song-row',
     trackColumns: {
       album: '[data-col="album"]',
@@ -23,6 +24,11 @@ export default class SearchNamespace extends GMusicNamespace {
       duration: '[data-col="duration"]',
       playCount: '[data-col="play-count"]',
       title: '[data-col="title"]',
+    },
+    songMenu: '.song-menu',
+    menuItems: {
+      playNext: '#\\:6',
+      addToQueue: '#\\:8',
     },
   };
 
@@ -38,6 +44,8 @@ export default class SearchNamespace extends GMusicNamespace {
     this.addMethod('isSearching', this.isSearching.bind(this));
     this.addMethod('performSearch', this.performSearch.bind(this));
     this.addMethod('playResult', this.playResult.bind(this));
+    this.addMethod('queueTrack', this.queueTrack.bind(this));
+    this.addMethod('playTrackNext', this.playTrackNext.bind(this));
   }
 
   _text(elem, def) {
@@ -69,6 +77,52 @@ export default class SearchNamespace extends GMusicNamespace {
         }
       }
     });
+  }
+
+  // Click on a menu item in the track menu.
+  // This should be used for the simple menu items that you can click once and forget,
+  // such as 'Add to queue' or 'Play next'.
+  // Returns a promise that resolves after the button has been clicked.
+  // resultObject - search result object
+  // menuItem - item from SearchNamespace.selectors.menuItems
+  _clickTrackMenuItem(resultObject, menuItem) {
+    // if the track is off-screen, the first click will not open the menu
+    const self = this;
+    return new Promise((resolve, reject) => {
+      const waitForMenuOpen = setInterval((function clickItem(trackObject) {
+        return () => {
+          // Open the menu so we can get at the menu items
+          const trackMore = document.querySelector(`[data-id="${trackObject.id}"] ${SearchNamespace.selectors.moreButton}`);
+          if (!trackMore) {
+            clearInterval(waitForMenuOpen);
+            reject(new Error('Failed to locate the menu button for result; it may not be in this search'));
+          }
+          trackMore.click();
+
+          const menu = document.querySelector(SearchNamespace.selectors.songMenu);
+          if (menu.style.display !== 'none') {
+            clearInterval(waitForMenuOpen);
+            const button = document.querySelector(`${SearchNamespace.selectors.songMenu} ${menuItem} .goog-menuitem-content`);
+            if (!button) {
+              reject(new Error('Failed to click menu button; it may not be possible'));
+            }
+
+            // A simple 'click' won't do for these menu items.
+            // We have to send mousedown and mouseup.
+            this._triggerMouseEvent(button, 'mousedown');
+            this._triggerMouseEvent(button, 'mouseup');
+
+            resolve();
+          }
+        };
+      }).call(self, resultObject));
+    });
+  }
+
+  _triggerMouseEvent(node, eventType) {
+    const clickEvent = document.createEvent('MouseEvents');
+    clickEvent.initEvent(eventType, true, true);
+    node.dispatchEvent(clickEvent);
   }
 
   getSearchText() {
@@ -156,6 +210,14 @@ export default class SearchNamespace extends GMusicNamespace {
       throw new Error('Failed to play result, it must not be in this search');
     }
     (trackPlay || otherPlay).click();
+  }
+
+  queueTrack(resultObject) {
+    return this._clickTrackMenuItem(resultObject, SearchNamespace.selectors.menuItems.addToQueue);
+  }
+
+  playTrackNext(resultObject) {
+    return this._clickTrackMenuItem(resultObject, SearchNamespace.selectors.menuItems.playNext);
   }
 
   performSearch(text) {
