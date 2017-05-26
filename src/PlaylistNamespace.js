@@ -9,9 +9,9 @@ import scrollToPlaySong from './utils/scrollToPlaySong';
 export default class PlaylistNamespace extends GMusicNamespace {
   static selectors = {
     mainContainer: '#mainContainer',
-    playButton: '[data-id="play"]',
-    playlistInfoContainer: '.material-container-details',
-    playlistTitle: '.title',
+    playButton: '#playButton',
+    playlistInfoContainer: '.gpm-detail-page-header.detail-wrapper',
+    playlistTitle: '[slot="title"]',
   };
 
   constructor(...args) {
