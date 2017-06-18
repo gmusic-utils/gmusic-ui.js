@@ -32,7 +32,7 @@ export default class QueueNamespace extends GMusicNamespace {
     let queue = this.getTracks();
     changeSpy(window.APPCONTEXT[this.path[0]][this.path[1]][0], () => {
       const newQueue = this.getTracks();
-      let changed = false;
+      let changed = newQueue.length !== queue.length;
       for (let i = 0; i < newQueue.length; i++) {
         if (!queue[i]) {
           changed = true; break;
