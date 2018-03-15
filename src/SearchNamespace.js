@@ -153,13 +153,14 @@ export default class SearchNamespace extends GMusicNamespace {
   playResult(resultObject) {
     const trackPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.playButton}`);
     const otherPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.cardPlayButton}`);
-    const artistThumbnail = document.querySelector('[data-id="' + resultObject.id + '"]');
+    const artistThumbnail = document.querySelector(`[data-id="${resultObject.id}"]`);
     if (!trackPlay && !otherPlay && !artistThumbnail) {
       throw new Error('Failed to play result, it must not be in this search');
     }
+    let artistPlay;
     if (artistThumbnail) {
       artistThumbnail.click();
-      const artistPlay = document.querySelector(`${SearchNamespace.selectors.artistPlayButton}`);
+      artistPlay = document.querySelector(`${SearchNamespace.selectors.artistPlayButton}`);
     }
     (trackPlay || otherPlay || artistPlay).click();
   }
