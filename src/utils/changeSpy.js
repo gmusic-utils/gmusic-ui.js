@@ -4,4 +4,4 @@ export default (o, cb) => {
     cb(...args);
     return originalFn.bind(o, ...args)();
   };
-}
+};
