@@ -9,6 +9,7 @@ import { findContextPath } from './utils/context';
 export default class SearchNamespace extends GMusicNamespace {
   static selectors = {
     albumResults: '.lane-content > [data-type=album]',
+    artistPlayButton: '#playButton',
     artistResults: '.lane-content > [data-type=artist]',
     bestMatch: '[data-type=sr]',
     cardPlayButton: '.play-button-container',
@@ -152,10 +153,16 @@ export default class SearchNamespace extends GMusicNamespace {
   playResult(resultObject) {
     const trackPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.playButton}`);
     const otherPlay = document.querySelector(`[data-id="${resultObject.id}"] ${SearchNamespace.selectors.cardPlayButton}`);
-    if (!trackPlay && !otherPlay) {
+    const artistThumbnail = document.querySelector(`[data-id="${resultObject.id}"]`);
+    if (!trackPlay && !otherPlay && !artistThumbnail) {
       throw new Error('Failed to play result, it must not be in this search');
     }
-    (trackPlay || otherPlay).click();
+    let artistPlay;
+    if (artistThumbnail) {
+      artistThumbnail.click();
+      artistPlay = document.querySelector(`${SearchNamespace.selectors.artistPlayButton}`);
+    }
+    (trackPlay || otherPlay || artistPlay).click();
   }
 
   performSearch(text) {
