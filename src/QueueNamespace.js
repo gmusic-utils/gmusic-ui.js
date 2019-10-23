@@ -11,6 +11,32 @@ const dispatchEvent = (el, etype) => {
   el.dispatchEvent(evt);
 };
 
+var trackMenu = {
+  radio: ":3",
+  // automix: ":4",
+  showMiniPlayer: ":5",
+  playNext: ":6",
+  deleteFromQueue: ":7",
+  // addToQueue: ":8",
+  addToLibrary: ":a",
+  // deleteFromLibrary: ":b",
+  // showVideo: ":c",
+  // addToPlaylist: ":d",
+  share: ":f",
+  // changeData: ":g",
+  // download: ":h",
+  // remove: ":i",
+  // deleteFromPlaylist: ":j",
+  // rate: ":k",
+  // artistPage: ":l",
+  // restore: ":m",
+  // remove: ":n",
+  // chooseAll: ":o",
+  // cleanQueue: ":p",
+  // report: ":q",
+  buy: ":r"
+}
+
 export default class QueueNamespace extends GMusicNamespace {
   constructor(...args) {
     super(...args);
@@ -24,6 +50,11 @@ export default class QueueNamespace extends GMusicNamespace {
     this.addMethod('clear', this.clear.bind(this));
     this.addMethod('getTracks', this.getTracks.bind(this));
     this.addMethod('playTrack', this.playTrack.bind(this));
+
+    Object(trackMenu).map(x => this.addMethod(x, (track) => {
+      this._openTrackDetails(track);
+      document.querySelector(`[id="${trackMenu[x]}"]`).click();
+    }))
   }
 
   _watchQueue() {
@@ -65,51 +96,38 @@ export default class QueueNamespace extends GMusicNamespace {
     return Playlist.fromPlaylistObject('_', window.APPCONTEXT[this.path[0]][this.path[1]][0][this.path[2]].queue).tracks;
   }
 
-  playTrack(track) {
+  // DEV: In order to save memory GPM only renders the songs currently on screen
+  //      and a few above and a few below.  This means the song we want to play
+  //      might not be visible.  We need to QUICKLY "scan" through the page making
+  //      GPM render all songs till we find the one we want
+  _scrollToTrack(track) {
     if (document.querySelector('#queue-overlay').style.display === 'none') {
-      dispatchEvent(document.querySelector('#queue[data-id="queue"]'), 'click');
+      document.querySelector('#queue[data-id="queue"]').click();
     }
-    return new Promise((resolve) => {
-      const waitForQueueOpen = setInterval(() => {
-        if (document.querySelector('#queue[data-id="queue"]').classList.contains('opened')) {
-          clearInterval(waitForQueueOpen);
-          resolve();
-        }
-      });
-    }).then(() => {
-      assert(track.id, 'Expected track to have a property "id" but it did not');
-      const container = document.querySelector('#queueContainer');
-      const songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
-      let songPlayButton = document.querySelector(songQueryString);
-      const initial = container.scrollTop;
+    var songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
+    if (document.querySelector(songQueryString)) {
+      return;
+    }
+    var container = document.querySelector('#queueContainer');
+    var tbody = document.querySelector('#queueContainer tbody');
+    var start = Number(tbody.getAttribute('data-start-index'));
+    var end = Number(tbody.getAttribute('data-end-index'));
+    var h = document.querySelector('tr.song-row').getBoundingClientRect().height;
+    if (track.index < start) {
+      return container.scrollTop -= ((start - track.index) * h) + h;
+    } else if (track.index > end) {
+      return container.scrollTop += ((track.index - end) * h) + h;
+    }
+    throw new Error(`Failed to find song with id ("${track.id}") in queue`);
+  }
 
-      if (songPlayButton) {
-        songPlayButton.click();
-        return;
-      }
+  _openTrackDetails(track) {
+    this._scrollToTrack(track);
+    document.querySelector(`song-row[data-id="${track.id}"] [data-id="menu"]`)
+  }
 
-      container.scrollTop = 0;
-      // DEV: In order to save memory GPM only renders the songs currently on screen
-      //      and a few above and a few below.  This means the song we want to play
-      //      might not be visible.  We need to QUICKLY "scan" through the page making
-      //      GPM render all songs till we find the one we want
-      const scrolDownAndSearch = () => {
-        songPlayButton = document.querySelector(songQueryString);
-        if (songPlayButton) {
-          songPlayButton.click();
-          return;
-        }
-        if (container.scrollTop < container.scrollHeight - container.getBoundingClientRect().height) {
-          container.scrollTop += container.getBoundingClientRect().height;
-          // DEV: Changing the scrollTop and rerendering is an asyncronous response
-          //      If we wait for next tick the rerender will be complete
-          setTimeout(scrolDownAndSearch, 10);
-        } else {
-          container.scrollTop = initial;
-          throw new Error(`Failed to find song with id ("${track.id}") in queue`);
-        }
-      };
-      setTimeout(scrolDownAndSearch, 0);
-    });
+  playTrack(track) {
+    this._scrollToTrack(track)
+    document.querySelector(songQueryString).click()
   }
 }
