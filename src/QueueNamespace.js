@@ -1,28 +1,21 @@
-import assert from 'assert';
 import { GMusicNamespace } from 'gmusic.js';
 import Playlist from './Structs/Playlist';
 
 import changeSpy from './utils/changeSpy';
 import { findContextPath } from './utils/context';
 
-const dispatchEvent = (el, etype) => {
-  const evt = document.createEvent('Events');
-  evt.initEvent(etype, true, false);
-  el.dispatchEvent(evt);
-};
-
-var trackMenu = {
-  radio: ":3",
+const trackMenu = {
+  radio: ':3',
   // automix: ":4",
-  showMiniPlayer: ":5",
-  playNext: ":6",
-  deleteFromQueue: ":7",
+  showMiniPlayer: ':5',
+  playNext: ':6',
+  deleteFromQueue: ':7',
   // addToQueue: ":8",
-  addToLibrary: ":a",
+  addToLibrary: ':a',
   // deleteFromLibrary: ":b",
   // showVideo: ":c",
   // addToPlaylist: ":d",
-  share: ":f",
+  share: ':f',
   // changeData: ":g",
   // download: ":h",
   // remove: ":i",
@@ -34,8 +27,8 @@ var trackMenu = {
   // chooseAll: ":o",
   // cleanQueue: ":p",
   // report: ":q",
-  buy: ":r"
-}
+  buy: ':r',
+};
 
 export default class QueueNamespace extends GMusicNamespace {
   constructor(...args) {
@@ -51,10 +44,10 @@ export default class QueueNamespace extends GMusicNamespace {
     this.addMethod('getTracks', this.getTracks.bind(this));
     this.addMethod('playTrack', this.playTrack.bind(this));
 
-    Object(trackMenu).map(x => this.addMethod(x, (track) => {
-      this._openTrackDetails(track);
+    Object(trackMenu).map((x) => this.addMethod(x, (track) => {
+      this.openTrackDetails(track);
       document.querySelector(`[id="${trackMenu[x]}"]`).click();
-    }))
+    }));
   }
 
   _watchQueue() {
@@ -64,14 +57,10 @@ export default class QueueNamespace extends GMusicNamespace {
     changeSpy(window.APPCONTEXT[this.path[0]][this.path[1]][0], () => {
       const newQueue = this.getTracks();
       let changed = newQueue.length !== queue.length;
-      for (let i = 0; i < newQueue.length; i++) {
-        if (!queue[i]) {
-          changed = true; break;
-        }
-        if (newQueue[i].id !== queue[i].id) {
-          changed = true; break;
-        }
-      }
+
+      changed = changed || queue
+        .some((x, i) => !x || newQueue[i].id !== x.id);
+
       queue = newQueue;
       if (changed) that.emit('change:queue', newQueue);
     });
@@ -100,34 +89,41 @@ export default class QueueNamespace extends GMusicNamespace {
   //      and a few above and a few below.  This means the song we want to play
   //      might not be visible.  We need to QUICKLY "scan" through the page making
   //      GPM render all songs till we find the one we want
-  _scrollToTrack(track) {
+  // eslint-disable-next-line class-methods-use-this
+  scrollToTrack(track) {
+    const songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
+
     if (document.querySelector('#queue-overlay').style.display === 'none') {
       document.querySelector('#queue[data-id="queue"]').click();
     }
-    var songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
     if (document.querySelector(songQueryString)) {
       return;
     }
-    var container = document.querySelector('#queueContainer');
-    var tbody = document.querySelector('#queueContainer tbody');
-    var start = Number(tbody.getAttribute('data-start-index'));
-    var end = Number(tbody.getAttribute('data-end-index'));
-    var h = document.querySelector('tr.song-row').getBoundingClientRect().height;
+
+    const container = document.querySelector('#queueContainer');
+    const tbody = document.querySelector('#queueContainer tbody');
+    const start = Number(tbody.getAttribute('data-start-index'));
+    const end = Number(tbody.getAttribute('data-end-index'));
+    const h = document.querySelector('tr.song-row').getBoundingClientRect().height;
     if (track.index < start) {
-      return container.scrollTop -= ((start - track.index) * h) + h;
-    } else if (track.index > end) {
-      return container.scrollTop += ((track.index - end) * h) + h;
+      container.scrollTop -= ((start - track.index) * h) + h;
+      return;
+    }
+    if (track.index > end) {
+      container.scrollTop += ((track.index - end) * h) + h;
+      return;
     }
     throw new Error(`Failed to find song with id ("${track.id}") in queue`);
   }
 
-  _openTrackDetails(track) {
-    this._scrollToTrack(track);
-    document.querySelector(`song-row[data-id="${track.id}"] [data-id="menu"]`)
+  openTrackDetails(track) {
+    this.scrollToTrack(track);
+    document.querySelector(`song-row[data-id="${track.id}"] [data-id="menu"]`);
   }
 
   playTrack(track) {
-    this._scrollToTrack(track)
-    document.querySelector(songQueryString).click()
+    const songQueryString = `.song-row[data-id="${track.id}"] [data-id="play"]`;
+    this.scrollToTrack(track);
+    document.querySelector(songQueryString).click();
   }
 }
