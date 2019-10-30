@@ -5,6 +5,8 @@ import changeSpy from './utils/changeSpy';
 import { findContextPath } from './utils/context';
 import { click } from './utils/mouseEvents';
 
+const delay = (t, v) => new Promise((resolve) => setTimeout(() => resolve(v), t));
+
 const trackMenu = {
   startRadio: ':3',
   // automix: ":4",
@@ -60,12 +62,17 @@ export default class QueueNamespace extends GMusicNamespace {
         validateTrack(track);
 
         this.scrollTo(track);
+        delay(500)
+          .then(() => {
+            click($(`#queueContainer .song-row[data-id="${track.id}"] [data-id="menu"]`, true));
+            click($(`[id="${trackMenu[x]}"]`, true));
+          });
         // DEV: Changing the scrollTop and rerendering is an asyncronous response
         //      If we wait for next tick the rerender will be complete
-        setTimeout(() => {
-          $(`#queueContainer .song-row[data-id="${track.id}"] [data-id="menu"]`, true).click();
-          click($(`[id="${trackMenu[x]}"]`, true));
-        }, 100);
+        // setTimeout(() => {
+        //   $(`#queueContainer .song-row[data-id="${track.id}"] [data-id="menu"]`, true).click();
+        //   click($(`[id="${trackMenu[x]}"]`, true));
+        // }, 500);
       };
       this.addMethod(x, this[x]);
       return this[x];
