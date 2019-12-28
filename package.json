@@ -24,7 +24,7 @@
     "url": "https://github.com/gmusic-utils/gmusic-ui.js/issues"
   },
   "dependencies": {
-    "gmusic.js": "^6.0.5"
+    "gmusic.js": "^6.1.5"
   },
   "devDependencies": {
     "babel-eslint": "^6.1.2",
